@@ -1,3 +1,4 @@
+import cv2
 from typing import List, Tuple, Optional
 from ..strategies.base_strategy import OCRStrategy, OcrResult
 from ..strategies.paddle_strategy import PaddleStrategy
