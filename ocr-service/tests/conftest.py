@@ -23,10 +23,8 @@ def test_images():
     handwritten_path = TEST_IMAGES_DIR / "handwritten.jpg"
     if not handwritten_path.exists():
         img = np.ones((300, 600, 3), dtype=np.uint8) * 255  # Белый фон
-        cv2.putText(img, "ПРИВЕТ МИР", (50, 150), cv2.FONT_HERSHEY_SIMPLEX,
-                   2, (0, 0, 0), 3, cv2.LINE_AA)
-        cv2.putText(img, "ЭТО РУКОПИСНЫЙ ТЕКСТ", (50, 220), cv2.FONT_HERSHEY_SIMPLEX,
-                   1, (0, 0, 0), 2, cv2.LINE_AA)
+        cv2.putText(img, "ПРИВЕТ МИР", (50, 150), cv2.FONT_HERSHEY_SIMPLEX,2, (0, 0, 0), 3, cv2.LINE_AA)
+        cv2.putText(img, "ЭТО РУКОПИСНЫЙ ТЕКСТ", (50, 220), cv2.FONT_HERSHEY_SIMPLEX,1, (0, 0, 0), 2, cv2.LINE_AA)
         cv2.imwrite(str(handwritten_path), img)
     images["handwritten"] = str(handwritten_path)
 
@@ -35,10 +33,8 @@ def test_images():
     if not printed_path.exists():
         img = np.ones((400, 800, 3), dtype=np.uint8) * 255
         font = cv2.FONT_HERSHEY_COMPLEX
-        cv2.putText(img, "Это печатный текст для тестирования", (50, 100), font,
-                   1.2, (0, 0, 0), 2)
-        cv2.putText(img, "Tesseract должен распознать его хорошо", (50, 180), font,
-                   1.0, (0, 0, 0), 2)
+        cv2.putText(img, "Это печатный текст для тестирования", (50, 100), font,1.2, (0, 0, 0), 2)
+        cv2.putText(img, "Tesseract должен распознать его хорошо", (50, 180), font,1.0, (0, 0, 0), 2)
         cv2.imwrite(str(printed_path), img)
     images["printed"] = str(printed_path)
 

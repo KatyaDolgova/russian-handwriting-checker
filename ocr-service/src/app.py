@@ -42,8 +42,9 @@ def main():
         if result["metadata"]["raw_text"]:
             print(f"\nСЫРОЙ ТЕКСТ (до постобработки):")
             print("-" * 60)
-            print(result["metadata"]["raw_text"][:200] + "..." if len(result["metadata"]["raw_text"]) > 200 else
-                  result["metadata"]["raw_text"])
+            print(result["metadata"]["raw_text"][:200] + "..." if len(result["metadata"]["raw_text"]) > 200 
+        else
+            result["metadata"]["raw_text"])
     else:
         print(f"\nОШИБКА: {result.get('error', 'Неизвестная ошибка')}")
         print(f"ДЕТАЛИ: {result.get('message', '')}")

@@ -1,17 +1,18 @@
-# src/rest_api.py
 from fastapi import FastAPI, File, UploadFile, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from uuid import uuid4
 from pathlib import Path
 import logging
+import re
 import os
 
-# Импорты для OCR-логики
+# Импорты OCR
 from .factories.ocr_factory import OCRFactory
-from .strategies.base_strategy import OcrResult
+from .services.ocr_service import OCRService  # если используешь
 
-# Настройка логирования
+# ====================== НАСТРОЙКИ ======================
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -23,95 +24,94 @@ class ErrorDetail(BaseModel):
 class ProcessImageResponse(BaseModel):
     success: bool
     text: str
+    #corrected_text: str = ""
     confidence: float
+    quality_score: int = 0
     source_algorithm: str
     processing_time: float
+    corrections: list[dict] = []
     errors: list[ErrorDetail] = []
 
-# Создание приложения
+# ====================== FastAPI ======================
 app = FastAPI(
     title="OCR Service API",
-    description="API для распознавания текста на изображениях (рукописный и печатный, русский)",
+    description="Гибридный OCR для рукописного и печатного текста (русский)",
     version="1.0.0",
     docs_url="/docs",
     redoc_url=None
 )
 
-# Глобальная директория для временных файлов
+# ====================== CORS ======================
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",      
+        "http://127.0.0.1:3000"
+        #"https://мой-домен.ру"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# ====================================================
+
+# Глобальная папка для временных файлов
 TEMP_DIR = Path("temp_uploads")
 TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
 
-@app.post("/ocr/process-image/", summary="Обработать изображение", tags=["OCR"])
+@app.post("/ocr/process-image/", summary="Обработать изображение")
 async def process_image(file: UploadFile = File(...)):
-    # Проверка типа файла
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Файл должен быть изображением (image/jpeg, image/png и др.)"
+            detail="Файл должен быть изображением"
         )
 
-    # Безопасное имя файла
-    import re
-    safe_filename = re.sub(r'[\\/:*?"<>|]', "", file.filename)
+    safe_filename = re.sub(r'[\\/:*?"<>|]', "", file.filename or "image")
     temp_file_path = TEMP_DIR / f"{uuid4()}_{safe_filename}"
 
     try:
-        # Сохранение временного файла
+        # Сохраняем файл
         with open(temp_file_path, "wb") as buffer:
             content = await file.read()
             buffer.write(content)
 
-        # Вызов OCR
-        logger.info(f"Запуск OCR для файла: {temp_file_path}")
-        strategy, result = OCRFactory.get_best_strategy(str(temp_file_path))
+        logger.info(f"OCR: обработка {temp_file_path}")
 
-        # Формирование ответа
+        result = OCRService.process_image(str(temp_file_path))
+
         response_data = ProcessImageResponse(
-            success=True,
-            text=result.text,
-            confidence=result.confidence,
-            source_algorithm=strategy.get_name(),
-            processing_time=result.processing_time,
-            errors=[]
+            success=result.get("success", True),
+            text=result.get("text", ""),
+            #corrected_text=result.get("corrected_text", ""),
+            confidence=result.get("confidence", 0.0),
+            #quality_score=result.get("quality_score", 0),
+            source_algorithm=result.get("selected_strategy", "Unknown"),
+            processing_time=result.get("processing_time", 0.0),
+            #corrections=result.get("corrections", []),
+            errors=[ErrorDetail(code="ERROR", message=e) for e in result.get("metadata", {}).get("errors", [])]
         )
-        logger.info(f"OCR завершён. Алгоритм: {strategy.get_name()}, Уверенность: {result.confidence:.3f}")
 
         return response_data
 
     except Exception as e:
-        logger.error(f"Ошибка при обработке изображения: {e}", exc_info=True)
-        error_detail = ErrorDetail(code="PROCESSING_ERROR", message=str(e))
+        logger.error(f"Ошибка обработки: {e}", exc_info=True)
         return ProcessImageResponse(
             success=False,
             text="",
-            confidence=0.0,
-            source_algorithm="Unknown",
-            processing_time=0.0,
-            errors=[error_detail]
+            errors=[ErrorDetail(code="PROCESSING_ERROR", message=str(e))]
         )
 
     finally:
-        # Удаление временного файла
-        if 'temp_file_path' in locals():
-            try:
-                Path(temp_file_path).unlink(missing_ok=True)
-                logger.debug(f"Временный файл удалён: {temp_file_path}")
-            except OSError as e:
-                logger.warning(f"Не удалось удалить временный файл {temp_file_path}: {e}")
+        if temp_file_path.exists():
+            temp_file_path.unlink(missing_ok=True)
 
 
-@app.get("/health", summary="Проверка состояния", tags=["General"])
+@app.get("/health")
 async def health_check():
     return {"status": "healthy"}
 
-
-@app.get("/", summary="Главная страница", tags=["General"])
-async def root():
-    return {
-        "message": "OCR Service API is running.",
-        "docs": "/docs"
-    }
 
 if __name__ == "__main__":
     import uvicorn

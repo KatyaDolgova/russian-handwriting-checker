@@ -1,0 +1,6 @@
+@RussianHandwritingChecker.Api_HostAddress = http://localhost:5064
+
+GET {{RussianHandwritingChecker.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
