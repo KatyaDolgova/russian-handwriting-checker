@@ -4,3 +4,4 @@ opencv-python==4.6.0.66
 pytesseract
 Pillow
 pytest
+fastapi[all]>=0.115.0

@@ -31,7 +31,7 @@ namespace RussianHandwritingChecker.Api.Controllers
                 return BadRequest("Файл должен быть изображением.");
             }
 
-            using var httpClient = _httpClientFactory.CreateClient();
+            using var httpClient = _httpClientFactory.CreateClient("OCRClient");
 
             // Подготовка multipart/form-data запроса к FastAPI
             using var content = new MultipartFormDataContent();

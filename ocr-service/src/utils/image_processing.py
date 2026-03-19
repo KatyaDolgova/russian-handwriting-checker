@@ -5,7 +5,6 @@ import numpy as np
 def enhance_for_paddle(image_path: str) -> np.ndarray:
     """
     Предобработка изображения для PaddleOCR
-    (Ваша оригинальная функция)
     """
     img = cv2.imread(image_path)
     if img is None:
@@ -29,7 +28,6 @@ def enhance_for_paddle(image_path: str) -> np.ndarray:
 def enhance_for_tesseract(image_path: str) -> np.ndarray:
     """
     Предобработка изображения для Tesseract
-    (Ваша оригинальная функция)
     """
     img = cv2.imread(image_path)
     if img is None:

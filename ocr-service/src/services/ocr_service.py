@@ -1,6 +1,6 @@
 from typing import Dict, Any
 from ..factories.ocr_factory import OCRFactory
-from ..strategies.base_strategy import OcrResult
+
 
 class OCRService:
     """Сервис для распознавания текста с использованием фабрики стратегий"""

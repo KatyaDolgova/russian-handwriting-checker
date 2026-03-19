@@ -2,60 +2,49 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllers(); // Добавляем поддержку контроллеров
+// ====================== CORS ======================
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReact", policy =>
+    {
+        policy.WithOrigins(
+            "http://localhost:3000",
+            "http://127.0.0.1:3000"
+            //"https://мой-домен.ру"   
+        )
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials();
+    });
+});
+// =================================================
 
-// Настройка Swagger/OpenAPI
-builder.Services.AddEndpointsApiExplorer(); // Необходимо для Swagger
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "Russian Handwriting Checker API", Version = "v1" });
-    // Здесь можно добавить настройки документации (XML комментарии и т.д.)
 });
 
-// Добавляем HttpClientFactory для вызова внешних API (например, OCR-сервиса)
-builder.Services.AddHttpClient();
+// HttpClient для вызова Python OCR
+builder.Services.AddHttpClient("OCRClient", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["OCRService:BaseUrl"] ?? "http://localhost:8000");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ====================== Middleware ======================
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection(); 
-app.UseAuthorization();    // Для проверки JWT токенов (когда добавишь)
+app.UseHttpsRedirection();
+app.UseCors("AllowReact");           
+app.UseAuthorization();
+app.MapControllers();
 
-// Маршрутизация к контроллерам
-app.MapControllers(); 
-
-// Пример встроенного эндпоинта (не через контроллер)
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
-
-app.Run(); // Запуск приложения
-
-// Запись (record) для модели прогноза погоды 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+app.Run();
