@@ -1,0 +1,58 @@
+# === Visual Studio / .NET ===
+bin/
+obj/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.csproj.user
+*.pubxml
+*.publishproj
+*.dbmdl
+*.jfm
+
+# === Python ===
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv-new/
+.venv-new/
+ENV/
+.env
+.venv-new
+tesseract_ocr.py
+test_paddleocr.py
+
+# === OCR-сервис ===
+ocr-service/temp_*.jpg
+ocr-service/result.txt
+ocr-service/uploads/
+
+# === Node.js / React ===
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# === ОС ===
+.DS_Store
+Thumbs.db
+
+# === Базы данных (локальные) ===
+*.db
+*.sqlite
+*.log
+
+# === Прочее ===
+*.tmp
+*.bak

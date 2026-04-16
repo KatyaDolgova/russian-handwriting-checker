@@ -1,0 +1,21 @@
+# Основные зависимости
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pydantic-settings>=2.0
+python-dotenv>=1.0
+openai>=1.57.0
+langchain-ollama>=0.2.0
+
+# MarkItDown — главный конвертер
+markitdown[all]
+markitdown-ocr
+
+# OCR 
+paddleocr==2.8.1
+opencv-python==4.10.0.84
+pytesseract
+Pillow
+numpy==1.26.4
+
+# Дополнительно
+python-multipart>=0.0.9
