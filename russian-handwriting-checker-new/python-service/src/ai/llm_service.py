@@ -2,7 +2,7 @@ from openai import AsyncOpenAI
 from typing import Optional
 
 class LLMService:
-    def __init__(self, model: str = "qwen3:14b"):
+    def __init__(self, model: str = "qwen2.5:7b"):
         self.client = AsyncOpenAI(
             base_url="http://localhost:11434/v1",
             api_key="ollama"   # Ollama не требует реального ключа
