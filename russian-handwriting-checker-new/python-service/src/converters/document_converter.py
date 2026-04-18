@@ -3,7 +3,7 @@ from pathlib import Path
 from ..strategies.hybrid_ocr import HybridOCR
 
 class DocumentConverter:
-    """Главный конвертер: MarkItDown + fallback на твой гибридный OCR"""
+    """Главный конвертер: MarkItDown + fallback на гибридный OCR"""
 
     def __init__(self):
         self.md = MarkItDown(enable_plugins=True)
@@ -20,7 +20,7 @@ class DocumentConverter:
 
         print(f"[Converter] Обработка файла: {path.name} ({ext})")
 
-        # Если это изображение — используем твой гибридный OCR
+        # Если это изображение — используем гибридный OCR
         if ext in ['.jpg', '.jpeg', '.png', '.bmp', '.tiff']:
             try:
                 print("[Converter] Изображение → используем HybridOCR")
