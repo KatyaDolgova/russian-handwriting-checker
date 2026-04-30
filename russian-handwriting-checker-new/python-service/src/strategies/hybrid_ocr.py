@@ -5,6 +5,9 @@ from typing import Dict, Any
 from .paddle_strategy import PaddleStrategy
 from .tesseract_strategy import TesseractStrategy
 from ..utils.text_processing import fix_russian_handwriting, clean_text
+from ..core.logger import get_logger
+
+logger = get_logger("hybrid_ocr")
 
 
 class HybridOCR:
@@ -16,7 +19,7 @@ class HybridOCR:
 
     def process(self, image_path: str) -> str:
         """Синхронная обработка изображения"""
-        print(f"[HybridOCR] Обработка: {Path(image_path).name}")
+        logger.info("Обработка: %s", Path(image_path).name)
 
         start_time = time.time()
 
@@ -32,12 +35,12 @@ class HybridOCR:
                 best = tess_result
                 source = "Tesseract"
 
-            print(f"[HybridOCR] Выбран {source} | Уверенность: {best.confidence:.3f} | Длина текста: {len(best.text)}")
+            logger.info("Выбран %s | Уверенность: %.3f | Длина текста: %d", source, best.confidence, len(best.text))
 
             return best.text
 
         except Exception as e:
-            print(f"[HybridOCR] Ошибка: {e}")
+            logger.error("Ошибка: %s", e, exc_info=True)
             return f"[Ошибка OCR] Не удалось распознать текст из файла {Path(image_path).name}"
 
     async def process_async(self, image_path: str) -> str:

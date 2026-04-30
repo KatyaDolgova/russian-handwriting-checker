@@ -1,26 +1,43 @@
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, UploadFile, File, BackgroundTasks
 from pathlib import Path
 import shutil
 from uuid import uuid4
-from src.services.document_service import DocumentService
+
+from src.services.ocr_service import OCRService
+from src.core.task_store import tasks
 
 router = APIRouter(prefix="/upload")
 
 TEMP_DIR = Path("temp_uploads")
 TEMP_DIR.mkdir(exist_ok=True)
 
-doc_service = DocumentService()
+ocr_service = OCRService()
+
 
 @router.post("/")
-async def upload(file: UploadFile = File(...)):
-    path = TEMP_DIR / f"{uuid4()}_{file.filename}"
+async def upload(file: UploadFile = File(...), background_tasks: BackgroundTasks = None):
+    task_id = str(uuid4())
 
-    try:
-        with open(path, "wb") as f:
-            shutil.copyfileobj(file.file, f)
+    path = TEMP_DIR / f"{task_id}_{file.filename}"
 
-        text = await doc_service.process(str(path))
+    with open(path, "wb") as f:
+        shutil.copyfileobj(file.file, f)
 
-        return {"success": True, "filename": file.filename, "raw_text": text}
-    finally:
-        path.unlink(missing_ok=True)
+    # сохраняем статус
+    tasks[task_id] = {"status": "processing"}
+
+    # 🔥 запускаем OCR в фоне
+    background_tasks.add_task(
+        ocr_service.process_file,
+        str(path),
+        task_id
+    )
+
+    return {
+        "task_id": task_id,
+        "status": "processing"
+    }
+
+@router.get("/{task_id}")
+async def get_status(task_id: str):
+    return tasks.get(task_id, {"status": "not_found"})

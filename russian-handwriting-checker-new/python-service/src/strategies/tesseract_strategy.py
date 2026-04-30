@@ -5,6 +5,9 @@ import pytesseract
 from .base_strategy import OCRStrategy, OcrResult
 from ..utils.image_processing import enhance_for_tesseract
 from ..utils.text_processing import fix_russian_handwriting, clean_text
+from ..core.logger import get_logger
+
+logger = get_logger("tesseract_strategy")
 
 
 class TesseractStrategy(OCRStrategy):
@@ -13,11 +16,10 @@ class TesseractStrategy(OCRStrategy):
     def __init__(self):
         """Инициализация Tesseract"""
         self.name = "Tesseract"
-        # Проверка доступности Tesseract
         try:
             pytesseract.get_tesseract_version()
         except Exception as e:
-            print(f"Внимание: Tesseract не доступен. Ошибка: {e}")
+            logger.warning("Tesseract не доступен: %s", e)
 
     def get_name(self) -> str:
         return self.name

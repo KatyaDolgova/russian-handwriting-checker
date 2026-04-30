@@ -31,4 +31,4 @@ async def save(request: SaveCheckRequest, db=Depends(get_db)):
         "function_id": request.function_id
     })
 
-    return {"success": True, "id": obj.id.hex()}
+    return {"success": True, "id": obj.id}
