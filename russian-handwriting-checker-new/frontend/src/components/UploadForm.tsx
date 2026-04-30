@@ -1,58 +1,145 @@
 import { useState } from 'react';
-import { Upload, FileText } from 'lucide-react';
-import axios from 'axios';
+import { UploadCloud, FileText, Loader2, AlertCircle } from 'lucide-react';
+import api from '../api';
 
 interface UploadFormProps {
   onSuccess: (data: any) => void;
 }
 
+const POLL_INTERVAL = 1500;
+const POLL_TIMEOUT = 120_000;
+
 export default function UploadForm({ onSuccess }: UploadFormProps) {
   const [isDragging, setIsDragging] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'uploading' | 'processing' | 'error'>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleUpload = async (file: File) => {
-    setIsLoading(true);
+    setStatus('uploading');
+    setErrorMsg('');
+
     const formData = new FormData();
     formData.append('file', file);
 
+    let taskId: string;
     try {
-      const res = await axios.post('http://127.0.0.1:8000/api/upload', formData, {
+      const res = await api.post('/api/upload/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      onSuccess(res.data);
-    } catch (err) {
-      alert('Ошибка загрузки файла');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
+      taskId = res.data.task_id;
+    } catch {
+      setStatus('error');
+      setErrorMsg('Не удалось загрузить файл');
+      return;
     }
+
+    setStatus('processing');
+    const deadline = Date.now() + POLL_TIMEOUT;
+
+    const poll = async () => {
+      if (Date.now() > deadline) {
+        setStatus('error');
+        setErrorMsg('Превышено время ожидания OCR');
+        return;
+      }
+      try {
+        const res = await api.get(`/api/upload/${taskId}`);
+        const { status: s, text, error } = res.data;
+        if (s === 'done') {
+          setStatus('idle');
+          onSuccess({ text, filename: file.name });
+        } else if (s === 'error') {
+          setStatus('error');
+          setErrorMsg(error || 'Ошибка распознавания');
+        } else {
+          setTimeout(poll, POLL_INTERVAL);
+        }
+      } catch {
+        setTimeout(poll, POLL_INTERVAL);
+      }
+    };
+
+    setTimeout(poll, POLL_INTERVAL);
   };
 
-  return (
-    <div
-      className={`border-2 border-dashed rounded-3xl p-10 text-center transition-all ${
-        isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
-      }`}
-      onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-      onDragLeave={() => setIsDragging(false)}
-      onDrop={(e) => { e.preventDefault(); setIsDragging(false); if (e.dataTransfer.files[0]) handleUpload(e.dataTransfer.files[0]); }}
-    >
-      <Upload className="mx-auto h-14 w-14 text-gray-400 mb-4" />
-      <p className="text-xl font-semibold text-gray-700">Загрузите работу ученика</p>
-      <p className="text-gray-500 mt-2">Поддерживаются: JPG, PNG, PDF, DOCX и другие</p>
+  const busy = status === 'uploading' || status === 'processing';
 
-      <label className="mt-8 inline-flex items-center gap-3 bg-white px-8 py-4 rounded-2xl border border-gray-300 hover:bg-gray-50 cursor-pointer shadow-sm">
-        <FileText className="h-5 w-5" />
-        <span className="font-medium">Выбрать файл</span>
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div className="px-5 py-4 border-b border-slate-100">
+        <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Загрузка работы</h2>
+      </div>
+
+      <label
+        className={`block p-8 text-center transition-colors cursor-pointer ${
+          busy ? 'pointer-events-none' : ''
+        } ${isDragging ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}
+        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setIsDragging(false);
+          if (!busy && e.dataTransfer.files[0]) handleUpload(e.dataTransfer.files[0]);
+        }}
+      >
         <input
           type="file"
           className="hidden"
           accept=".jpg,.jpeg,.png,.pdf,.docx,.doc"
+          disabled={busy}
           onChange={(e) => e.target.files && handleUpload(e.target.files[0])}
         />
+
+        <div className={`w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center transition-colors ${
+          isDragging ? 'bg-indigo-100' : 'bg-slate-100'
+        }`}>
+          {busy ? (
+            <Loader2 className={`h-7 w-7 text-indigo-500 animate-spin`} />
+          ) : (
+            <UploadCloud className={`h-7 w-7 ${isDragging ? 'text-indigo-600' : 'text-slate-400'}`} />
+          )}
+        </div>
+
+        {!busy ? (
+          <>
+            <p className="text-slate-700 font-medium mb-1">
+              {isDragging ? 'Отпустите файл' : 'Перетащите файл или нажмите'}
+            </p>
+            <p className="text-slate-400 text-sm">JPG, PNG, PDF, DOCX — до 50 МБ</p>
+          </>
+        ) : (
+          <div>
+            <p className="text-indigo-600 font-medium mb-1">
+              {status === 'uploading' ? 'Загружаем файл...' : 'Распознаём текст...'}
+            </p>
+            <p className="text-slate-400 text-sm">
+              {status === 'processing' ? 'Это может занять до минуты' : 'Пожалуйста, подождите'}
+            </p>
+          </div>
+        )}
       </label>
 
-      {isLoading && <p className="text-blue-600 mt-6">Обрабатываем файл...</p>}
+      {status === 'error' && (
+        <div className="mx-5 mb-4 flex items-center gap-2 text-red-600 bg-red-50 rounded-xl px-4 py-3 text-sm">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          {errorMsg}
+        </div>
+      )}
+
+      {!busy && (
+        <div className="px-5 pb-5">
+          <label className="flex items-center justify-center gap-2 w-full bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-xl font-medium text-sm cursor-pointer transition-colors">
+            <FileText className="h-4 w-4" />
+            Выбрать файл
+            <input
+              type="file"
+              className="hidden"
+              accept=".jpg,.jpeg,.png,.pdf,.docx,.doc"
+              onChange={(e) => e.target.files && handleUpload(e.target.files[0])}
+            />
+          </label>
+        </div>
+      )}
     </div>
   );
 }
