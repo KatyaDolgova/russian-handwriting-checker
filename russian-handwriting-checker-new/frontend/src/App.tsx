@@ -11,6 +11,7 @@ import StreamingPreview from './components/StreamingPreview';
 import HistoryPanel from './components/HistoryPanel';
 import FunctionManager from './components/FunctionManager';
 import StudentsPanel from './components/StudentsPanel';
+import ProfileModal from './components/ProfileModal';
 
 type Tab = 'check' | 'history' | 'students' | 'functions';
 type RightState = 'empty' | 'streaming' | 'result';
@@ -18,6 +19,7 @@ type RightState = 'empty' | 'streaming' | 'result';
 function AppContent() {
   const { user, logout } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [tab, setTab] = useState<Tab>('check');
 
   const [editedText, setEditedText] = useState('');
@@ -89,10 +91,13 @@ function AppContent() {
           <div className="flex items-center gap-3">
             {user ? (
               <>
-                <div className="hidden sm:flex items-center gap-2 text-sm text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full">
+                <button
+                  onClick={() => setShowProfile(true)}
+                  className="cursor-pointer hidden sm:flex items-center gap-2 text-sm text-slate-500 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-full transition-colors"
+                >
                   <User className="h-3.5 w-3.5" />
-                  <span className="max-w-[160px] truncate">{user.email}</span>
-                </div>
+                  <span className="max-w-[160px] truncate">{user.display_name || user.email}</span>
+                </button>
                 <button
                   onClick={logout}
                   className="cursor-pointer flex items-center gap-1.5 text-sm text-slate-500 hover:text-red-500 transition-colors px-2 py-1.5 rounded-lg hover:bg-red-50"
@@ -184,6 +189,7 @@ function AppContent() {
       </main>
 
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+      {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
     </div>
   );
 }

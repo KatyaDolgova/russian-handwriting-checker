@@ -380,7 +380,7 @@ export default function HistoryPanel() {
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 px-4 py-3 text-center">
             <p className={`text-2xl font-bold ${stats.avgPct >= 80 ? 'text-emerald-600' : stats.avgPct >= 50 ? 'text-amber-600' : 'text-red-600'}`}>{stats.avgPct}%</p>
-            <p className="text-xs text-slate-400 mt-0.5">Средний балл</p>
+            <p className="text-xs text-slate-400 mt-0.5">Средний процент правильных ответов</p>
           </div>
         </div>
       )}

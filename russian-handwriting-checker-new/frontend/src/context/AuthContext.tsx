@@ -5,6 +5,7 @@ import api from '../api';
 interface User {
   user_id: string;
   email: string;
+  display_name?: string | null;
 }
 
 interface AuthContextType {
@@ -13,6 +14,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<string>;
   logout: () => void;
+  updateDisplayName: (name: string | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -23,7 +25,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!token) return;
-    api.get('/api/auth/me').then((res) => setUser(res.data)).catch(() => logout());
+    api.get('/api/auth/me')
+      .then((res) => setUser({
+        user_id: res.data.user_id,
+        email: res.data.email,
+        display_name: res.data.display_name ?? null,
+      }))
+      .catch(() => logout());
   }, [token]);
 
   const login = async (email: string, password: string) => {
@@ -48,8 +56,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  const updateDisplayName = (name: string | null) => {
+    setUser(prev => prev ? { ...prev, display_name: name } : prev);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, login, register, logout, updateDisplayName }}>
       {children}
     </AuthContext.Provider>
   );

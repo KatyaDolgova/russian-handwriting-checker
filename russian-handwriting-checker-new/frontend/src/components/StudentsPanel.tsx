@@ -366,7 +366,7 @@ export default function StudentsPanel() {
         </div>
         <div className="bg-white rounded-2xl border border-slate-200 px-4 py-3 text-center">
           <p className={`text-2xl font-bold ${scoreColor(overallAvg)}`}>{overallAvg}%</p>
-          <p className="text-xs text-slate-400 mt-0.5">Средний балл</p>
+          <p className="text-xs text-slate-400 mt-0.5">Средний процент правильных ответов</p>
         </div>
       </div>
 
