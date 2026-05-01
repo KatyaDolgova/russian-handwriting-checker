@@ -69,7 +69,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
               <button
                 key={t}
                 onClick={() => { setTab(t); setError(''); setInfo(''); }}
-                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
+                className={`cursor-pointer flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
                   tab === t ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
@@ -83,21 +83,23 @@ export default function AuthModal({ onClose }: AuthModalProps) {
               <label className="block text-xs font-medium text-slate-600 mb-1.5">Email</label>
               <input
                 type="email"
+                autoComplete="email"
                 placeholder="teacher@school.ru"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
+                className="cursor-text w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
               />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1.5">Пароль</label>
               <input
                 type="password"
+                autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
                 placeholder="Минимум 6 символов"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
+                className="cursor-text w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
               />
             </div>
           </div>
@@ -116,7 +118,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="mt-5 w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white py-3 rounded-xl font-semibold text-sm transition-colors"
+            className="cursor-pointer mt-5 w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-default text-white py-3 rounded-xl font-semibold text-sm transition-colors"
           >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />

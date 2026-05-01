@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react';
-import { Sparkles, Loader2, ChevronRight } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Sparkles, Loader2, ChevronRight, X } from 'lucide-react';
 import api from '../api';
 
 interface CheckPanelProps {
   text: string;
   onCheckComplete: (result: any, functionId: string) => void;
+  onStreamChunk: (chunk: string) => void;
+  onStreamStart: () => void;
+  onStreamCancel?: () => void;
 }
 
 interface Fn {
@@ -13,23 +16,20 @@ interface Fn {
   description: string;
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  grammar:      'bg-violet-50 border-violet-200 text-violet-700 data-[active=true]:bg-violet-600 data-[active=true]:text-white data-[active=true]:border-violet-600',
-  oge_essay:    'bg-blue-50 border-blue-200 text-blue-700 data-[active=true]:bg-blue-600 data-[active=true]:text-white data-[active=true]:border-blue-600',
-  ege_essay:    'bg-emerald-50 border-emerald-200 text-emerald-700 data-[active=true]:bg-emerald-600 data-[active=true]:text-white data-[active=true]:border-emerald-600',
-  final_essay:  'bg-amber-50 border-amber-200 text-amber-700 data-[active=true]:bg-amber-600 data-[active=true]:text-white data-[active=true]:border-amber-600',
-  free:         'bg-slate-50 border-slate-200 text-slate-600 data-[active=true]:bg-slate-700 data-[active=true]:text-white data-[active=true]:border-slate-700',
-};
+const PALETTE = [
+  'bg-violet-50 border-violet-200 text-violet-700 data-[active=true]:bg-violet-600 data-[active=true]:text-white data-[active=true]:border-violet-600 hover:bg-violet-100',
+  'bg-blue-50 border-blue-200 text-blue-700 data-[active=true]:bg-blue-600 data-[active=true]:text-white data-[active=true]:border-blue-600 hover:bg-blue-100',
+  'bg-emerald-50 border-emerald-200 text-emerald-700 data-[active=true]:bg-emerald-600 data-[active=true]:text-white data-[active=true]:border-emerald-600 hover:bg-emerald-100',
+  'bg-amber-50 border-amber-200 text-amber-700 data-[active=true]:bg-amber-600 data-[active=true]:text-white data-[active=true]:border-amber-600 hover:bg-amber-100',
+  'bg-rose-50 border-rose-200 text-rose-700 data-[active=true]:bg-rose-600 data-[active=true]:text-white data-[active=true]:border-rose-600 hover:bg-rose-100',
+  'bg-slate-50 border-slate-200 text-slate-600 data-[active=true]:bg-slate-700 data-[active=true]:text-white data-[active=true]:border-slate-700 hover:bg-slate-100',
+];
 
-function getTypeColor(name: string): string {
-  const key = Object.keys(TYPE_COLORS).find((k) => name.toLowerCase().includes(k));
-  return key ? TYPE_COLORS[key] : TYPE_COLORS.free;
-}
-
-export default function CheckPanel({ text, onCheckComplete }: CheckPanelProps) {
+export default function CheckPanel({ text, onCheckComplete, onStreamChunk, onStreamStart, onStreamCancel }: CheckPanelProps) {
   const [functions, setFunctions] = useState<Fn[]>([]);
   const [selectedId, setSelectedId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     api.get('/api/functions/').then((res) => {
@@ -40,16 +40,70 @@ export default function CheckPanel({ text, onCheckComplete }: CheckPanelProps) {
 
   const selectedFn = functions.find((f) => f.id === selectedId);
 
+  const handleCancel = () => {
+    abortRef.current?.abort();
+    setIsLoading(false);
+    onStreamCancel?.();
+  };
+
   const handleCheck = async () => {
     if (!text.trim()) { alert('Текст пустой'); return; }
     if (!selectedId) return;
+
     setIsLoading(true);
+    onStreamStart();
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    const token = localStorage.getItem('access_token');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     try {
-      const res = await api.post('/api/check/', { text, function_id: selectedId });
-      onCheckComplete(res.data, selectedId);
-    } catch (err) {
-      alert('Ошибка при проверке');
+      const response = await fetch('http://127.0.0.1:8000/api/check/stream', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ text, function_id: selectedId }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok || !response.body) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          try {
+            const event = JSON.parse(line.slice(6));
+            if (event.type === 'chunk') {
+              onStreamChunk(event.text);
+            } else if (event.type === 'done') {
+              onCheckComplete(event.result, selectedId);
+            } else if (event.type === 'error') {
+              alert('Ошибка проверки: ' + event.message);
+            }
+          } catch {
+            // skip malformed SSE line
+          }
+        }
+      }
+    } catch (err: any) {
+      if (err?.name === 'AbortError') return;
       console.error(err);
+      alert('Ошибка соединения с сервером');
     } finally {
       setIsLoading(false);
     }
@@ -67,13 +121,13 @@ export default function CheckPanel({ text, onCheckComplete }: CheckPanelProps) {
             <div key={i} className="h-14 bg-slate-100 rounded-xl animate-pulse" />
           ))
         ) : (
-          functions.map((fn) => (
+          functions.map((fn, idx) => (
             <button
               key={fn.id}
               data-active={selectedId === fn.id}
               onClick={() => setSelectedId(fn.id)}
               title={fn.description}
-              className={`py-3 px-4 rounded-xl text-sm font-medium border transition-all text-left leading-tight ${getTypeColor(fn.name)}`}
+              className={`cursor-pointer py-3 px-4 rounded-xl text-sm font-medium border transition-all text-left leading-tight ${PALETTE[idx % PALETTE.length]}`}
             >
               {fn.name}
             </button>
@@ -87,25 +141,34 @@ export default function CheckPanel({ text, onCheckComplete }: CheckPanelProps) {
         </div>
       )}
 
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-4 flex gap-2">
         <button
           onClick={handleCheck}
           disabled={isLoading || !selectedId}
-          className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white py-3.5 rounded-xl font-semibold text-sm transition-colors"
+          className="cursor-pointer flex-1 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white py-3.5 rounded-xl font-semibold text-sm transition-colors"
         >
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Проверяем...
+              Анализируем...
             </>
           ) : (
             <>
-              <Sparkles className="h-4 w-4" />
+              <Sparkles className="h-4 w-4 ml-3" />
               Проверить текст
-              <ChevronRight className="h-4 w-4 ml-auto" />
+              <ChevronRight className="h-4 w-4 ml-auto mr-3" />
             </>
           )}
         </button>
+        {isLoading && (
+          <button
+            onClick={handleCancel}
+            title="Отменить"
+            className="flex items-center justify-center w-12 bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-500 rounded-xl transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
     </div>
   );

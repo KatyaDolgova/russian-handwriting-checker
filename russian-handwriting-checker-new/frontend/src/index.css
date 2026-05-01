@@ -36,6 +36,15 @@
 .ProseMirror p { margin: 0 0 8px; }
 .ProseMirror p:last-child { margin-bottom: 0; }
 
+/* Placeholder когда редактор пустой (TipTap добавляет класс is-editor-empty) */
+.ProseMirror.is-editor-empty::before {
+  content: "Введите или вставьте текст для проверки...";
+  color: #94a3b8;
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
 /* Error highlights from LLM */
 .error-highlight {
   background: #fee2e2;
