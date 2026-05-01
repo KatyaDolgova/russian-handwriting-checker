@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LogIn, LogOut, User, History, FileCheck, BookOpen, Settings } from 'lucide-react';
+import { LogIn, LogOut, User, History, FileCheck, BookOpen, Settings, Users } from 'lucide-react';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
 import AuthModal from './components/AuthModal';
@@ -10,8 +10,9 @@ import ResultPanel from './components/ResultPanel';
 import StreamingPreview from './components/StreamingPreview';
 import HistoryPanel from './components/HistoryPanel';
 import FunctionManager from './components/FunctionManager';
+import StudentsPanel from './components/StudentsPanel';
 
-type Tab = 'check' | 'history' | 'functions';
+type Tab = 'check' | 'history' | 'students' | 'functions';
 type RightState = 'empty' | 'streaming' | 'result';
 
 function AppContent() {
@@ -73,6 +74,11 @@ function AppContent() {
             {user && (
               <TabBtn active={tab === 'history'} onClick={() => setTab('history')} icon={<History className="h-4 w-4" />}>
                 История
+              </TabBtn>
+            )}
+            {user && (
+              <TabBtn active={tab === 'students'} onClick={() => setTab('students')} icon={<Users className="h-4 w-4" />}>
+                Ученики
               </TabBtn>
             )}
             <TabBtn active={tab === 'functions'} onClick={() => setTab('functions')} icon={<Settings className="h-4 w-4" />}>
@@ -152,6 +158,14 @@ function AppContent() {
             ) : (
               <EmptyAuth onLogin={() => setShowAuth(true)} />
             )}
+          </div>
+        )}
+
+        {/* Students tab */}
+        {tab === 'students' && (
+          <div className="max-w-3xl">
+            <h2 className="text-xl font-semibold text-slate-800 mb-5">Статистика учеников</h2>
+            <StudentsPanel />
           </div>
         )}
 

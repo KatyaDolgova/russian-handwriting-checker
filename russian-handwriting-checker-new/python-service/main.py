@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.routes import upload, check, functions, auth
+from src.api.routes import upload, check, functions, auth, folders, groups
 from src.core.database import engine, Base
 from src.core.seed_functions import seed_default_functions
+import src.models.folder  # noqa: F401 — register with Base.metadata
+import src.models.group   # noqa: F401
 
 app = FastAPI(
     title="Russian Handwriting Checker AI",
@@ -28,3 +30,5 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(upload.router, prefix="/api")
 app.include_router(check.router, prefix="/api")
 app.include_router(functions.router, prefix="/api")
+app.include_router(folders.router, prefix="/api")
+app.include_router(groups.router, prefix="/api")

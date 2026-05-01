@@ -1,6 +1,8 @@
-import { useState } from 'react';
-import { Pencil, Eye, CheckCircle2, AlertTriangle, Loader2, Printer, User2, Copy, Check } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Pencil, Eye, CheckCircle2, AlertTriangle, Loader2, Printer, User2, Copy, Check, FolderClosed } from 'lucide-react';
 import api from '../api';
+
+interface Folder { id: string; name: string; }
 
 interface ResultPanelProps {
   result: any;
@@ -59,10 +61,21 @@ export default function ResultPanel({ result, originalText, filename, functionId
   const [scoreMax, setScoreMax] = useState('5');
   const [editedComment, setEditedComment] = useState(result.comment || '');
   const [pupilName, setPupilName] = useState('');
+  const [workDate, setWorkDate] = useState(() => {
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  });
+  const [folderId, setFolderId] = useState('');
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [showCorrected, setShowCorrected] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    api.get('/api/folders/').then(r => setFolders(r.data)).catch(() => {});
+  }, []);
 
   const errors: any[] = result.errors || [];
   const criteria: Record<string, any> | null = result.criteria || null;
@@ -81,6 +94,8 @@ export default function ResultPanel({ result, originalText, filename, functionId
         comment: editedComment,
         function_id: functionId,
         pupil_name: pupilName || undefined,
+        folder_id: folderId || undefined,
+        work_date: new Date(workDate).toISOString(),
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
@@ -166,15 +181,39 @@ export default function ResultPanel({ result, originalText, filename, functionId
 
       {/* Pupil name */}
       <div className="px-5 pt-4 pb-2">
-        <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
-          <User2 className="h-4 w-4 text-slate-400 shrink-0" />
-          <input
-            type="text"
-            placeholder="Имя ученика (необязательно)"
-            value={pupilName}
-            onChange={(e) => setPupilName(e.target.value)}
-            className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 focus:outline-none cursor-text"
-          />
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
+            <User2 className="h-4 w-4 text-slate-400 shrink-0" />
+            <input
+              type="text"
+              placeholder="Имя ученика (необязательно)"
+              value={pupilName}
+              onChange={(e) => setPupilName(e.target.value)}
+              className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 focus:outline-none cursor-text"
+            />
+          </div>
+          <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
+            <span className="text-xs text-slate-400 shrink-0">Дата работы</span>
+            <input
+              type="datetime-local"
+              value={workDate}
+              onChange={(e) => setWorkDate(e.target.value)}
+              className="flex-1 bg-transparent text-sm text-slate-700 focus:outline-none cursor-pointer"
+            />
+          </div>
+          {folders.length > 0 && (
+            <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
+              <FolderClosed className="h-4 w-4 text-amber-500 shrink-0" />
+              <select
+                value={folderId}
+                onChange={(e) => setFolderId(e.target.value)}
+                className="cursor-pointer flex-1 bg-transparent text-sm text-slate-700 focus:outline-none"
+              >
+                <option value="">Без папки</option>
+                {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+              </select>
+            </div>
+          )}
         </div>
       </div>
 
