@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Sparkles, Loader2, ChevronRight, X } from 'lucide-react';
 import api from '../api';
+import { useToast } from './Toast';
 
 interface CheckPanelProps {
   text: string;
-  onCheckComplete: (result: any, functionId: string) => void;
+  onCheckComplete: (result: Record<string, unknown>, functionId: string) => void;
   onStreamChunk: (chunk: string) => void;
   onStreamStart: () => void;
   onStreamCancel?: () => void;
@@ -14,6 +15,7 @@ interface Fn {
   id: string;
   name: string;
   description: string;
+  user_template?: string;
 }
 
 const PALETTE = [
@@ -38,6 +40,7 @@ export default function CheckPanel({ text, onCheckComplete, onStreamChunk, onStr
     });
   }, []);
 
+  const toast = useToast();
   const selectedFn = functions.find((f) => f.id === selectedId);
 
   const handleCancel = () => {
@@ -47,7 +50,8 @@ export default function CheckPanel({ text, onCheckComplete, onStreamChunk, onStr
   };
 
   const handleCheck = async () => {
-    if (!text.trim()) { alert('Текст пустой'); return; }
+    const tmpl = selectedFn?.user_template ?? '';
+    if (tmpl.includes('{text}') && !text.trim()) { toast.info('Введите текст для проверки'); return; }
     if (!selectedId) return;
 
     setIsLoading(true);
@@ -93,17 +97,17 @@ export default function CheckPanel({ text, onCheckComplete, onStreamChunk, onStr
             } else if (event.type === 'done') {
               onCheckComplete(event.result, selectedId);
             } else if (event.type === 'error') {
-              alert('Ошибка проверки: ' + event.message);
+              toast.error('Ошибка проверки: ' + event.message);
             }
           } catch {
             // skip malformed SSE line
           }
         }
       }
-    } catch (err: any) {
-      if (err?.name === 'AbortError') return;
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') return;
       console.error(err);
-      alert('Ошибка соединения с сервером');
+      toast.error('Ошибка соединения с сервером');
     } finally {
       setIsLoading(false);
     }

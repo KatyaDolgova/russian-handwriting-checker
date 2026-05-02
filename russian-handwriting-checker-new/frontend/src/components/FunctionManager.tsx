@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, X, Loader2, ChevronDown, ChevronUp, Lock, FileCode } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Loader2, ChevronDown, ChevronUp, Lock, FileCode, AlertCircle } from 'lucide-react';
 import api from '../api';
+import { useToast } from './Toast';
 
 interface Fn {
   id: string;
@@ -15,7 +16,7 @@ const EMPTY: Omit<Fn, 'id'> = {
   name: '',
   description: '',
   system_prompt: '',
-  user_template: 'Проверь следующий текст:\n\n{text}',
+  user_template: '',
 };
 
 const PROMPT_TEMPLATE = `Ты — опытный учитель русского языка. [Опиши своё задание здесь]
@@ -44,6 +45,7 @@ function FunctionForm({
   onSave: (data: Omit<Fn, 'id'>) => Promise<void>;
   onCancel: () => void;
 }) {
+  const toast = useToast();
   const [form, setForm] = useState(initial);
   const [saving, setSaving] = useState(false);
 
@@ -55,7 +57,7 @@ function FunctionForm({
 
   const handleSave = async () => {
     if (!form.name.trim() || !form.system_prompt.trim()) {
-      alert('Заполните название и системный промпт');
+      toast.info('Заполните название и системный промпт');
       return;
     }
     setSaving(true);
@@ -96,12 +98,26 @@ function FunctionForm({
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-slate-600 mb-1">
-          Шаблон запроса <span className="text-slate-400">(используй <code className="bg-slate-100 px-1 rounded">{'{text}'}</code> для подстановки текста)</span>
-        </label>
+        <div className="flex items-center justify-between mb-1">
+          <label className="block text-xs font-medium text-slate-600">
+            Шаблон запроса{' '}
+            <span className="text-slate-400 font-normal">
+              (необязательно — используй <code className="bg-slate-100 px-1 rounded">{'{text}'}</code> для подстановки текста; оставь пустым, если текст не нужен)
+            </span>
+          </label>
+          <button
+            type="button"
+            onClick={() => setForm((f) => ({ ...f, user_template: 'Проверь следующий текст:\n\n{text}' }))}
+            className="cursor-pointer flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 px-2 py-1 rounded-lg transition-colors shrink-0 ml-2"
+          >
+            <FileCode className="h-3 w-3" />
+            Вставить шаблон
+          </button>
+        </div>
         <textarea
           {...field('user_template')}
           rows={2}
+          placeholder={'Проверь следующий текст:\n\n{text}'}
           className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-mono resize-y focus:outline-none focus:border-indigo-400"
         />
       </div>
@@ -129,6 +145,7 @@ export default function FunctionManager() {
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const load = () =>
     api.get('/api/functions/').then((r) => setFunctions(r.data)).finally(() => setLoading(false));
@@ -147,9 +164,9 @@ export default function FunctionManager() {
     load();
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Удалить функцию «${name}»?`)) return;
+  const handleDelete = async (id: string) => {
     await api.delete(`/api/functions/${id}`);
+    setConfirmDeleteId(null);
     load();
   };
 
@@ -228,15 +245,26 @@ export default function FunctionManager() {
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
                     <button
-                      onClick={() => handleDelete(fn.id, fn.name)}
+                      onClick={() => setConfirmDeleteId(confirmDeleteId === fn.id ? null : fn.id)}
                       disabled={!!fn.is_default}
-                      className="cursor-pointer p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      className={`cursor-pointer p-2 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${confirmDeleteId === fn.id ? 'text-red-500 bg-red-50' : 'text-slate-400 hover:text-red-500 hover:bg-red-50'}`}
                       title={fn.is_default ? 'Нельзя удалить стандартную функцию' : 'Удалить'}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 </div>
+
+                {confirmDeleteId === fn.id && (
+                  <div className="px-4 pb-3">
+                    <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-xl">
+                      <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
+                      <span className="text-sm text-red-700 flex-1">Удалить «{fn.name}»?</span>
+                      <button onClick={() => setConfirmDeleteId(null)} className="cursor-pointer text-xs px-2.5 py-1 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">Отмена</button>
+                      <button onClick={() => handleDelete(fn.id)} className="cursor-pointer text-xs px-2.5 py-1 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium transition-colors">Удалить</button>
+                    </div>
+                  </div>
+                )}
 
                 {expandedId === fn.id && (
                   <div className="border-t border-slate-100 px-4 py-4 space-y-3">

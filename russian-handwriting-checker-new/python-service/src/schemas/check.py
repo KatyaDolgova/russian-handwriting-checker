@@ -10,11 +10,12 @@ class CheckRequest(BaseModel):
 
 class SaveCheckRequest(BaseModel):
     filename: str
+    title: Optional[str] = None
     original_text: str
     corrected_text: str
     errors: Optional[List[dict]] = []
-    score: float
-    score_max: float = 100.0
+    score: Optional[float] = None
+    score_max: Optional[float] = None
     comment: str
     function_id: str
     folder_id: Optional[str] = None

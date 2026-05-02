@@ -1,54 +1,67 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FileCheck } from 'lucide-react';
 import UploadForm from '../components/UploadForm';
 import TextEditor from '../components/TextEditor';
 import CheckPanel from '../components/CheckPanel';
 import ResultPanel from '../components/ResultPanel';
 import StreamingPreview from '../components/StreamingPreview';
+import type { CheckState } from '../App';
 
-type RightState = 'empty' | 'streaming' | 'result';
+interface CheckPageProps {
+  state: CheckState;
+  setState: React.Dispatch<React.SetStateAction<CheckState>>;
+}
 
-export default function CheckPage() {
-  const [editedText, setEditedText] = useState('');
-  const [result, setResult] = useState<any>(null);
-  const [filename, setFilename] = useState('');
-  const [functionId, setFunctionId] = useState('');
+export default function CheckPage({ state, setState }: CheckPageProps) {
   const [streamText, setStreamText] = useState('');
-  const [rightState, setRightState] = useState<RightState>('empty');
+  const { editedText, result, filename, functionId, rightState } = state;
 
-  const handleUploadSuccess = (data: any) => {
-    setEditedText(data.text || '');
-    setFilename(data.filename || 'uploaded-file');
-    setResult(null);
-    setRightState('empty');
+  // Если пользователь ушёл во время стриминга — сбрасываем состояние
+  useEffect(() => {
+    if (rightState === 'streaming') {
+      setState(prev => ({ ...prev, rightState: 'empty' }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleUploadSuccess = (data: Record<string, unknown>) => {
+    setStreamText('');
+    setState(prev => ({
+      ...prev,
+      editedText: (data.text as string) || '',
+      filename: (data.filename as string) || 'uploaded-file',
+      result: null,
+      rightState: 'empty',
+    }));
   };
 
   const handleStreamStart = () => {
     setStreamText('');
-    setResult(null);
-    setRightState('streaming');
+    setState(prev => ({ ...prev, result: null, rightState: 'streaming' }));
   };
 
   const handleStreamCancel = () => {
     setStreamText('');
-    setRightState('empty');
+    setState(prev => ({ ...prev, rightState: 'empty' }));
   };
 
   const handleStreamChunk = (chunk: string) => {
-    setStreamText((prev) => prev + chunk);
+    setStreamText(prev => prev + chunk);
   };
 
-  const handleCheckComplete = (res: any, fnId: string) => {
-    setResult(res);
-    setFunctionId(fnId);
-    setRightState('result');
+  const handleCheckComplete = (res: Record<string, unknown>, fnId: string) => {
+    setState(prev => ({ ...prev, result: res, functionId: fnId, rightState: 'result' }));
   };
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
       <div className="flex flex-col gap-5">
         <UploadForm onSuccess={handleUploadSuccess} />
-        <TextEditor value={editedText} onChange={setEditedText} filename={filename} />
+        <TextEditor
+          value={editedText}
+          onChange={(v) => setState(prev => ({ ...prev, editedText: v }))}
+          filename={filename}
+        />
         <CheckPanel
           text={editedText}
           onCheckComplete={handleCheckComplete}

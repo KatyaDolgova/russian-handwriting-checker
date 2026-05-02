@@ -102,6 +102,7 @@ async def me(
     scores_q = await db.execute(
         select(func.sum(Check.score), func.sum(Check.score_max))
         .where(Check.user_id == user_id)
+        .where(Check.score.isnot(None))
     )
     total_score, total_max = scores_q.one()
     avg_pct = round((total_score or 0) / total_max * 100) if total_max else 0

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Pencil, Eye, CheckCircle2, AlertTriangle, Loader2, Printer, User2, Copy, Check, FolderClosed } from 'lucide-react';
 import api from '../api';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from './Toast';
 
 interface Folder { id: string; name: string; }
 
@@ -56,11 +58,16 @@ function ScoreBadge({ score, label, max }: { score: string; label?: string | nul
 }
 
 export default function ResultPanel({ result, originalText, filename, functionId }: ResultPanelProps) {
+  const { user } = useAuth();
+  const toast = useToast();
   const [editedCorrected, setEditedCorrected] = useState(result.corrected_text || '');
-  const [editedScore, setEditedScore] = useState(String(result.score ?? 0));
+  const [editedScore, setEditedScore] = useState(result.is_generation ? '' : String(result.score ?? 0));
   const [scoreMax, setScoreMax] = useState('5');
   const [editedComment, setEditedComment] = useState(result.comment || '');
+  const [title, setTitle] = useState('');
   const [pupilName, setPupilName] = useState('');
+  const [knownPupils, setKnownPupils] = useState<string[]>([]);
+  const [showPupilDrop, setShowPupilDrop] = useState(false);
   const [workDate, setWorkDate] = useState(() => {
     const d = new Date();
     const pad = (n: number) => String(n).padStart(2, '0');
@@ -70,13 +77,20 @@ export default function ResultPanel({ result, originalText, filename, functionId
   const [folders, setFolders] = useState<Folder[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [showCorrected, setShowCorrected] = useState(false);
+  const [scoreLabel, setScoreLabel] = useState<string | null>(result.score_label ?? null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     api.get('/api/folders/').then(r => setFolders(r.data)).catch(() => {});
-  }, []);
+    if (user) {
+      api.get('/api/pupils/').then(r => {
+        setKnownPupils((r.data as { name: string }[]).map(p => p.name));
+      }).catch(() => {});
+    }
+  }, [user]);
 
+  const isGeneration: boolean = !!result.is_generation;
   const errors: any[] = result.errors || [];
   const criteria: Record<string, any> | null = result.criteria || null;
 
@@ -84,23 +98,25 @@ export default function ResultPanel({ result, originalText, filename, functionId
     setSaving(true);
     setSaved(false);
     try {
+      const hasScore = editedScore.trim() !== '';
       await api.post('/api/check/save', {
         filename,
+        title: title.trim() || undefined,
         original_text: originalText,
         corrected_text: editedCorrected,
         errors,
-        score: parseFloat(editedScore) || 0,
-        score_max: parseFloat(scoreMax) || 100,
+        score: hasScore ? parseFloat(editedScore) : null,
+        score_max: hasScore ? parseFloat(scoreMax) || 100 : null,
         comment: editedComment,
         function_id: functionId,
-        pupil_name: pupilName || undefined,
+        pupil_name: pupilName.trim() || undefined,
         folder_id: folderId || undefined,
         work_date: new Date(workDate).toISOString(),
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch {
-      alert('Ошибка при сохранении');
+      toast.error('Ошибка при сохранении');
     } finally {
       setSaving(false);
     }
@@ -112,7 +128,7 @@ export default function ResultPanel({ result, originalText, filename, functionId
 <html lang="ru">
 <head>
   <meta charset="UTF-8"/>
-  <title>Отчёт: ${pupilName || filename}</title>
+  <title>Отчёт: ${title || pupilName || filename}</title>
   <style>
     body { font-family: 'Times New Roman', serif; max-width: 800px; margin: 40px auto; color: #111; font-size: 14px; line-height: 1.6; }
     h1 { font-size: 20px; border-bottom: 2px solid #333; padding-bottom: 8px; }
@@ -131,7 +147,7 @@ export default function ResultPanel({ result, originalText, filename, functionId
   </style>
 </head>
 <body>
-  <h1>Проверка работы</h1>
+  <h1>${title || 'Проверка работы'}</h1>
   <div class="meta">
     ${pupilName ? `<strong>Ученик:</strong> ${pupilName} &nbsp;|&nbsp;` : ''}
     <strong>Файл:</strong> ${filename} &nbsp;|&nbsp;
@@ -179,19 +195,57 @@ export default function ResultPanel({ result, originalText, filename, functionId
         </div>
       </div>
 
-      {/* Pupil name */}
+      {/* Save meta fields */}
       <div className="px-5 pt-4 pb-2">
         <div className="flex flex-col gap-2">
+          {/* Title */}
           <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
-            <User2 className="h-4 w-4 text-slate-400 shrink-0" />
+            <span className="text-xs text-slate-400 shrink-0">Название</span>
             <input
               type="text"
-              placeholder="Имя ученика (необязательно)"
-              value={pupilName}
-              onChange={(e) => setPupilName(e.target.value)}
+              placeholder="Диктант №3, Сочинение..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 focus:outline-none cursor-text"
             />
           </div>
+
+          {/* Pupil name — custom dropdown */}
+          <div className="relative">
+            <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
+              <User2 className="h-4 w-4 text-slate-400 shrink-0" />
+              <input
+                type="text"
+                autoComplete="off"
+                placeholder="Имя ученика (необязательно)"
+                value={pupilName}
+                onChange={(e) => setPupilName(e.target.value)}
+                onFocus={() => setShowPupilDrop(true)}
+                onBlur={() => setTimeout(() => setShowPupilDrop(false), 150)}
+                className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 focus:outline-none cursor-text"
+              />
+            </div>
+            {showPupilDrop && knownPupils.length > 0 && (
+              <div className="absolute left-0 right-0 top-full mt-1 z-20 bg-white border border-slate-200 rounded-xl shadow-lg max-h-40 overflow-y-auto">
+                {knownPupils
+                  .filter(p => !pupilName.trim() || p.toLowerCase().includes(pupilName.toLowerCase()))
+                  .map(p => (
+                    <button
+                      key={p}
+                      type="button"
+                      onMouseDown={() => { setPupilName(p); setShowPupilDrop(false); }}
+                      className="cursor-pointer w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 flex items-center gap-2 first:rounded-t-xl last:rounded-b-xl"
+                    >
+                      <User2 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                      {p}
+                    </button>
+                  ))
+                }
+              </div>
+            )}
+          </div>
+
+          {/* Date */}
           <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
             <span className="text-xs text-slate-400 shrink-0">Дата работы</span>
             <input
@@ -201,6 +255,8 @@ export default function ResultPanel({ result, originalText, filename, functionId
               className="flex-1 bg-transparent text-sm text-slate-700 focus:outline-none cursor-pointer"
             />
           </div>
+
+          {/* Folder */}
           {folders.length > 0 && (
             <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
               <FolderClosed className="h-4 w-4 text-amber-500 shrink-0" />
@@ -218,33 +274,35 @@ export default function ResultPanel({ result, originalText, filename, functionId
       </div>
 
       {/* Score + Comment */}
-      <div className="grid grid-cols-2 gap-4 px-5 py-3 border-b border-slate-100">
-        <div>
-          <p className="text-xs text-slate-400 mb-2 font-medium uppercase tracking-wide">Оценка</p>
-          {isEditing ? (
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                inputMode="decimal"
-                value={editedScore}
-                onChange={(e) => setEditedScore(e.target.value)}
-                className="w-20 p-2 border border-slate-300 rounded-xl text-lg font-bold text-center focus:outline-none focus:border-indigo-400 cursor-text"
-                placeholder="0"
-              />
-              <span className="text-slate-400 text-sm font-medium">из</span>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={scoreMax}
-                onChange={(e) => setScoreMax(e.target.value)}
-                className="w-20 p-2 border border-slate-300 rounded-xl text-lg font-bold text-center focus:outline-none focus:border-indigo-400 cursor-text"
-                placeholder="100"
-              />
-            </div>
-          ) : (
-            <ScoreBadge score={editedScore} label={result.score_label} max={scoreMax} />
-          )}
-        </div>
+      <div className={`grid gap-4 px-5 py-3 border-b border-slate-100 ${isGeneration && !isEditing ? 'grid-cols-1' : 'grid-cols-2'}`}>
+        {(!isGeneration || isEditing) && (
+          <div>
+            <p className="text-xs text-slate-400 mb-2 font-medium uppercase tracking-wide">Оценка</p>
+            {isEditing ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={editedScore}
+                  onChange={(e) => { setEditedScore(e.target.value); setScoreLabel(null); }}
+                  className="w-20 p-2 border border-slate-300 rounded-xl text-lg font-bold text-center focus:outline-none focus:border-indigo-400 cursor-text"
+                  placeholder="0"
+                />
+                <span className="text-slate-400 text-sm font-medium">из</span>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={scoreMax}
+                  onChange={(e) => setScoreMax(e.target.value)}
+                  className="w-20 p-2 border border-slate-300 rounded-xl text-lg font-bold text-center focus:outline-none focus:border-indigo-400 cursor-text"
+                  placeholder="100"
+                />
+              </div>
+            ) : (
+              <ScoreBadge score={editedScore} label={scoreLabel} max={scoreMax} />
+            )}
+          </div>
+        )}
         <div>
           <p className="text-xs text-slate-400 mb-2 font-medium uppercase tracking-wide">Комментарий</p>
           {isEditing ? (
@@ -279,7 +337,7 @@ export default function ResultPanel({ result, originalText, filename, functionId
       )}
 
       {/* Errors */}
-      {errors.length > 0 && (
+      {!isGeneration && errors.length > 0 && (
         <div className="px-5 py-4 border-b border-slate-100">
           <p className="text-xs text-slate-400 mb-3 font-medium uppercase tracking-wide">
             Ошибки <span className="text-slate-500">({errors.length})</span>
@@ -302,10 +360,12 @@ export default function ResultPanel({ result, originalText, filename, functionId
       {/* Text section */}
       <div className="px-5 py-4 flex-1">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-xs text-slate-400 font-medium uppercase tracking-wide">Текст</p>
+          <p className="text-xs text-slate-400 font-medium uppercase tracking-wide">
+            {isGeneration ? 'Сгенерированный результат' : 'Текст'}
+          </p>
           <div className="flex items-center gap-2">
-            <CopyBtn text={showCorrected || isEditing ? editedCorrected : originalText} />
-            {!isEditing && (
+            <CopyBtn text={isGeneration || showCorrected || isEditing ? editedCorrected : originalText} />
+            {!isEditing && !isGeneration && (
               <div className="flex bg-slate-100 rounded-lg p-0.5">
                 <button
                   onClick={() => setShowCorrected(false)}
@@ -328,10 +388,11 @@ export default function ResultPanel({ result, originalText, filename, functionId
           </div>
         </div>
 
-        {isEditing || showCorrected ? (
+        {isEditing || showCorrected || isGeneration ? (
           <textarea
             value={editedCorrected}
             onChange={(e) => setEditedCorrected(e.target.value)}
+            readOnly={isGeneration && !isEditing}
             className="cursor-text w-full h-48 p-3 border border-slate-300 rounded-xl text-sm font-mono resize-none focus:outline-none focus:border-indigo-400"
             placeholder="Исправленный текст..."
           />

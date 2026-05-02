@@ -16,6 +16,7 @@ class Check(Base):
     score = Column(Float)
     score_max = Column(Float, nullable=False, server_default='100', default=100.0)
     comment = Column(Text)
+    title = Column(String, nullable=True)
     pupil_name = Column(String, nullable=True)
     function_id = Column(String)
     folder_id = Column(String, nullable=True)

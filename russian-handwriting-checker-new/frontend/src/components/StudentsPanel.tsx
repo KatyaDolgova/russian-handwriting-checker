@@ -1,10 +1,13 @@
 import { useEffect, useState, useMemo } from 'react';
-import { User2, Loader2, ChevronDown, ChevronUp, Plus, Pencil, Trash2, X, Users, FolderClosed } from 'lucide-react';
+import { User2, Loader2, ChevronDown, ChevronUp, Plus, Pencil, Trash2, X, Users, FolderClosed, AlertCircle } from 'lucide-react';
 import api from '../api';
 
 interface CheckRecord {
   id: string;
   filename: string;
+  title?: string | null;
+  original_text?: string;
+  corrected_text?: string;
   pupil_name?: string;
   score: number;
   score_max: number;
@@ -55,6 +58,7 @@ function CheckMini({ check, folders }: { check: CheckRecord; folders: Folder[] }
     pct >= 0.5 ? 'text-amber-600 bg-amber-50 border-amber-200' :
                  'text-red-600 bg-red-50 border-red-200';
   const folderName = check.folder_id ? folders.find(f => f.id === check.folder_id)?.name : null;
+  const subtitle = check.title || (check.original_text || check.corrected_text || '').slice(0, 70);
   return (
     <div className="flex items-center gap-3 py-2 border-b border-slate-50 last:border-0">
       <div className={`w-9 h-9 rounded-lg border-2 flex items-center justify-center font-bold text-sm shrink-0 ${color}`}>
@@ -69,7 +73,7 @@ function CheckMini({ check, folders }: { check: CheckRecord; folders: Folder[] }
             </span>
           )}
         </div>
-        {check.comment && <p className="text-xs text-slate-400 line-clamp-1 mt-0.5">{check.comment}</p>}
+        {subtitle && <p className="text-xs text-slate-400 line-clamp-1 mt-0.5">{subtitle}</p>}
       </div>
       <p className="text-xs text-slate-300 shrink-0">{formatDate(check.work_date || check.created_at)}</p>
     </div>
@@ -88,6 +92,7 @@ function GroupSection({ groups, pupils, pupilGroups, onAddGroup, onUpdateGroup, 
   const [newName, setNewName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const doAdd = async () => {
@@ -109,23 +114,38 @@ function GroupSection({ groups, pupils, pupilGroups, onAddGroup, onUpdateGroup, 
       <div className="space-y-2">
         <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Группы</p>
         {groups.map(g => (
-          <div key={g.id} className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-indigo-400 shrink-0" />
-            {editingId === g.id ? (
-              <>
-                <input autoFocus value={editName} onChange={e => setEditName(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') doUpdate(g.id); if (e.key === 'Escape') setEditingId(null); }}
-                  className="cursor-text flex-1 px-2 py-1 text-sm border border-indigo-300 rounded-lg focus:outline-none" />
-                <button onClick={() => doUpdate(g.id)} className="cursor-pointer text-xs px-2 py-1 bg-indigo-600 text-white rounded-lg">OK</button>
-                <button onClick={() => setEditingId(null)} className="cursor-pointer p-1 text-slate-400 hover:text-slate-600"><X className="h-3.5 w-3.5" /></button>
-              </>
-            ) : (
-              <>
-                <span className="flex-1 text-sm text-slate-700">{g.name}</span>
-                <span className="text-xs text-slate-400">{[...pupilGroups.entries()].filter(([, gid]) => gid === g.id).length} уч.</span>
-                <button onClick={() => { setEditingId(g.id); setEditName(g.name); }} className="cursor-pointer p-1 text-slate-300 hover:text-indigo-600"><Pencil className="h-3.5 w-3.5" /></button>
-                <button onClick={() => onDeleteGroup(g.id)} className="cursor-pointer p-1 text-slate-300 hover:text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
-              </>
+          <div key={g.id} className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-indigo-400 shrink-0" />
+              {editingId === g.id ? (
+                <>
+                  <input autoFocus value={editName} onChange={e => setEditName(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') doUpdate(g.id); if (e.key === 'Escape') setEditingId(null); }}
+                    className="cursor-text flex-1 px-2 py-1 text-sm border border-indigo-300 rounded-lg focus:outline-none" />
+                  <button onClick={() => doUpdate(g.id)} className="cursor-pointer text-xs px-2 py-1 bg-indigo-600 text-white rounded-lg">OK</button>
+                  <button onClick={() => setEditingId(null)} className="cursor-pointer p-1 text-slate-400 hover:text-slate-600"><X className="h-3.5 w-3.5" /></button>
+                </>
+              ) : (
+                <>
+                  <span className="flex-1 text-sm text-slate-700">{g.name}</span>
+                  <span className="text-xs text-slate-400">{[...pupilGroups.entries()].filter(([, gid]) => gid === g.id).length} уч.</span>
+                  <button onClick={() => { setEditingId(g.id); setEditName(g.name); }} className="cursor-pointer p-1 text-slate-300 hover:text-indigo-600"><Pencil className="h-3.5 w-3.5" /></button>
+                  <button
+                    onClick={() => setConfirmDeleteId(confirmDeleteId === g.id ? null : g.id)}
+                    className={`cursor-pointer p-1 rounded ${confirmDeleteId === g.id ? 'text-red-500' : 'text-slate-300 hover:text-red-500'}`}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </>
+              )}
+            </div>
+            {confirmDeleteId === g.id && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-xl">
+                <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
+                <span className="text-sm text-red-700 flex-1">Удалить группу? Ученики останутся без группы.</span>
+                <button onClick={() => setConfirmDeleteId(null)} className="cursor-pointer text-xs px-2.5 py-1 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">Отмена</button>
+                <button onClick={() => { onDeleteGroup(g.id); setConfirmDeleteId(null); }} className="cursor-pointer text-xs px-2.5 py-1 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium transition-colors">Удалить</button>
+              </div>
             )}
           </div>
         ))}
@@ -176,7 +196,7 @@ export default function StudentsPanel() {
 
   useEffect(() => {
     Promise.all([
-      api.get('/api/check/history').then(r => r.data.map((c: CheckRecord) => ({ ...c, score_max: c.score_max ?? 100 }))),
+      api.get('/api/check/history').then(r => r.data.map((c: CheckRecord) => ({ ...c, score_max: c.score_max ?? 5 }))),
       api.get('/api/groups/').then(r => r.data).catch(() => []),
       api.get('/api/groups/pupils').then(r => r.data).catch(() => []),
       api.get('/api/folders/').then(r => r.data).catch(() => []),
@@ -201,7 +221,6 @@ export default function StudentsPanel() {
   };
 
   const handleDeleteGroup = async (id: string) => {
-    if (!confirm('Удалить группу? Ученики останутся, но будут без группы.')) return;
     await api.delete(`/api/groups/${id}`);
     setGroups(prev => prev.filter(g => g.id !== id));
     setPupilGroups(prev => {
@@ -238,11 +257,12 @@ export default function StudentsPanel() {
     const result: StudentStats[] = [];
     map.forEach((cs, key) => {
       if (key === '\x00') return;
-      const totalScore = cs.reduce((s, c) => s + c.score, 0);
-      const totalMax = cs.reduce((s, c) => s + c.score_max, 0);
+      const scored = cs.filter(c => c.score != null && c.score_max != null);
+      const totalScore = scored.reduce((s, c) => s + c.score, 0);
+      const totalMax = scored.reduce((s, c) => s + c.score_max, 0);
       const avgPct = totalMax > 0 ? Math.round(totalScore / totalMax * 100) : 0;
-      const avgScore = Math.round((totalScore / cs.length) * 10) / 10;
-      const pcts = cs.map(c => c.score_max > 0 ? (c.score / c.score_max) * 100 : 0);
+      const avgScore = scored.length > 0 ? Math.round((totalScore / scored.length) * 10) / 10 : 0;
+      const pcts = scored.map(c => c.score_max > 0 ? (c.score / c.score_max) * 100 : 0);
       result.push({
         name: key,
         checks: [...cs].sort((a, b) => {
@@ -251,8 +271,8 @@ export default function StudentsPanel() {
           return db.localeCompare(da);
         }),
         avgPct, avgScore,
-        best: Math.round(Math.max(...pcts)),
-        worst: Math.round(Math.min(...pcts)),
+        best: pcts.length ? Math.round(Math.max(...pcts)) : 0,
+        worst: pcts.length ? Math.round(Math.min(...pcts)) : 0,
         lastDate: cs.reduce((latest, c) => {
           const d = c.work_date || c.created_at;
           return d > latest ? d : latest;
@@ -269,7 +289,7 @@ export default function StudentsPanel() {
   }, [students, filterGroup, pupilGroups]);
 
   const overallAvg = useMemo(() => {
-    const groupChecks = filteredStudents.flatMap(s => s.checks);
+    const groupChecks = filteredStudents.flatMap(s => s.checks).filter(c => c.score != null && c.score_max != null);
     if (!groupChecks.length) return 0;
     const totalScore = groupChecks.reduce((s, c) => s + c.score, 0);
     const totalMax = groupChecks.reduce((s, c) => s + c.score_max, 0);
