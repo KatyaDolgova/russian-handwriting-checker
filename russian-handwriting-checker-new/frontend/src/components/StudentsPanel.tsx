@@ -150,7 +150,7 @@ function GroupSection({ groups, pupils, pupilGroups, onAddGroup, onUpdateGroup, 
               <select
                 value={pupilGroups.get(pupil) || ''}
                 onChange={e => onAssignGroup(pupil, e.target.value)}
-                className="cursor-pointer text-xs border border-slate-200 bg-white rounded-lg px-2 py-1.5 text-slate-600 focus:outline-none focus:border-indigo-400 max-w-[160px]"
+                className="cursor-pointer text-xs border border-slate-200 bg-white rounded-lg pl-2 pr-6 py-1.5 text-slate-600 focus:outline-none focus:border-indigo-400 max-w-[160px]"
               >
                 <option value="">Без группы</option>
                 {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
@@ -345,7 +345,7 @@ export default function StudentsPanel() {
           )}
           {folders.length > 0 && (
             <select value={filterFolder} onChange={e => setFilterFolder(e.target.value)}
-              className="cursor-pointer text-sm border border-slate-200 bg-white rounded-xl px-3 py-2 text-slate-600 focus:outline-none focus:border-indigo-400">
+              className="cursor-pointer text-sm border border-slate-200 bg-white rounded-xl pl-3 pr-8 py-2 text-slate-600 focus:outline-none focus:border-indigo-400">
               <option value="all">Все папки</option>
               <option value="">Без папки</option>
               {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}

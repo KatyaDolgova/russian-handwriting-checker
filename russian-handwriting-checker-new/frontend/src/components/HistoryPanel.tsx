@@ -196,7 +196,7 @@ function EditPanel({ check, folders, onSave, onCancel }: {
         <div>
           <label className="block text-xs font-medium text-slate-500 mb-1">Папка</label>
           <select value={form.folder_id} onChange={e => setForm(f => ({ ...f, folder_id: e.target.value }))}
-            className="cursor-pointer w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400 bg-white">
+            className="cursor-pointer w-full pl-3 pr-8 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400 bg-white">
             <option value="">Без папки</option>
             {folders.map(fl => <option key={fl.id} value={fl.id}>{fl.name}</option>)}
           </select>
@@ -405,7 +405,7 @@ export default function HistoryPanel() {
 
         {folders.length > 0 && (
           <select value={filterFolder} onChange={e => setFilterFolder(e.target.value)}
-            className="cursor-pointer text-sm border border-slate-200 bg-white rounded-xl px-3 py-2 text-slate-600 focus:outline-none focus:border-indigo-400">
+            className="cursor-pointer text-sm border border-slate-200 bg-white rounded-xl pl-3 pr-8 py-2 text-slate-600 focus:outline-none focus:border-indigo-400">
             <option value="all">Все папки</option>
             <option value="">Без папки</option>
             {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
@@ -413,7 +413,7 @@ export default function HistoryPanel() {
         )}
 
         <select value={sort} onChange={e => setSort(e.target.value as SortKey)}
-          className="cursor-pointer text-sm border border-slate-200 bg-white rounded-xl px-3 py-2 text-slate-600 focus:outline-none focus:border-indigo-400">
+          className="cursor-pointer text-sm border border-slate-200 bg-white rounded-xl pl-3 pr-8 py-2 text-slate-600 focus:outline-none focus:border-indigo-400">
           <option value="date_desc">По дате ↓</option>
           <option value="date_asc">По дате ↑</option>
           <option value="score_desc">По оценке ↓</option>

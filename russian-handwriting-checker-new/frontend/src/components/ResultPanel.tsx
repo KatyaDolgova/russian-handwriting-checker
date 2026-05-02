@@ -207,7 +207,7 @@ export default function ResultPanel({ result, originalText, filename, functionId
               <select
                 value={folderId}
                 onChange={(e) => setFolderId(e.target.value)}
-                className="cursor-pointer flex-1 bg-transparent text-sm text-slate-700 focus:outline-none"
+                className="cursor-pointer flex-1 bg-transparent text-sm text-slate-700 focus:outline-none pr-6"
               >
                 <option value="">Без папки</option>
                 {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
