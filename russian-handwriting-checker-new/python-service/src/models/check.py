@@ -14,7 +14,7 @@ class Check(Base):
     corrected_text = Column(Text)
     errors = Column(JSON, nullable=True)
     score = Column(Float)
-    score_max = Column(Float, nullable=False, server_default='100', default=100.0)
+    score_max = Column(Float, nullable=True, default=None)
     comment = Column(Text)
     title = Column(String, nullable=True)
     pupil_name = Column(String, nullable=True)
