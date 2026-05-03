@@ -5,10 +5,11 @@ from src.api.routes import upload, check, functions, auth, folders, groups, pupi
 from sqlalchemy import text
 from src.core.database import engine, Base
 from src.core.seed_functions import seed_default_functions
-import src.models.folder        # noqa: F401 — register with Base.metadata
-import src.models.group         # noqa: F401
-import src.models.user_profile  # noqa: F401
-import src.models.pupil         # noqa: F401
+import src.models.folder           # noqa: F401 — register with Base.metadata
+import src.models.group            # noqa: F401
+import src.models.user_profile     # noqa: F401
+import src.models.pupil            # noqa: F401
+import src.models.function_version # noqa: F401
 
 app = FastAPI(
     title="Russian Handwriting Checker AI",
@@ -28,6 +29,9 @@ async def startup():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         await conn.execute(text("ALTER TABLE checks ADD COLUMN IF NOT EXISTS title VARCHAR"))
+        await conn.execute(text("ALTER TABLE functions ADD COLUMN IF NOT EXISTS user_id VARCHAR"))
+        await conn.execute(text("ALTER TABLE functions ADD COLUMN IF NOT EXISTS is_published BOOLEAN DEFAULT FALSE"))
+        await conn.execute(text("ALTER TABLE functions ADD COLUMN IF NOT EXISTS original_function_id VARCHAR"))
     await seed_default_functions()
 
 app.include_router(auth.router, prefix="/api")
