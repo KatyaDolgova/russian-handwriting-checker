@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --color-brand: #6366f1;
@@ -7,12 +7,18 @@
 }
 
 @layer base {
-  * { box-sizing: border-box; }
+  * {
+    box-sizing: border-box;
+  }
 
   body {
     margin: 0;
     background: #f1f5f9;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family:
+      'Inter',
+      system-ui,
+      -apple-system,
+      sans-serif;
     -webkit-font-smoothing: antialiased;
     color: #0f172a;
   }
@@ -33,12 +39,16 @@
   color: #1e293b;
 }
 
-.ProseMirror p { margin: 0 0 8px; }
-.ProseMirror p:last-child { margin-bottom: 0; }
+.ProseMirror p {
+  margin: 0 0 8px;
+}
+.ProseMirror p:last-child {
+  margin-bottom: 0;
+}
 
 /* Placeholder когда редактор пустой (TipTap добавляет класс is-editor-empty) */
 .ProseMirror.is-editor-empty::before {
-  content: "Введите или вставьте текст для проверки...";
+  content: 'Введите или вставьте текст для проверки...';
   color: #94a3b8;
   pointer-events: none;
   float: left;

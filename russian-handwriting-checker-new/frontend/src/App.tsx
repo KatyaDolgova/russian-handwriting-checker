@@ -1,13 +1,8 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { ToastProvider } from './components/Toast';
-import Layout from './components/Layout';
-import CheckPage from './pages/CheckPage';
-import HistoryPage from './pages/HistoryPage';
-import StudentsPage from './pages/StudentsPage';
-import FunctionsPage from './pages/FunctionsPage';
-import ProfilePage from './pages/ProfilePage';
+import { Layout, ToastProvider } from '@/components/ui';
+import { CheckPage, FunctionsPage, HistoryPage, ProfilePage, StudentsPage } from '@/pages';
 
 export interface CheckState {
   editedText: string;
