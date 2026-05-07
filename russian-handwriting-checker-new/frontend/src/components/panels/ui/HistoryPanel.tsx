@@ -120,6 +120,22 @@ export const HistoryPanel = () => {
     if (filterFolder === id) setFilterFolder('all');
   };
 
+  const hasActiveFilters =
+    search !== '' ||
+    dateFilter !== 'all' ||
+    filterFolder !== 'all' ||
+    fromDate !== '' ||
+    toDate !== '';
+
+  const resetFilters = () => {
+    setSearch('');
+    setDateFilter('all');
+    setFilterFolder('all');
+    setFromDate('');
+    setToDate('');
+    setSort('date_desc');
+  };
+
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     return checks
@@ -348,6 +364,15 @@ export const HistoryPanel = () => {
           <option value="score_desc">По оценке ↓</option>
           <option value="score_asc">По оценке ↑</option>
         </select>
+
+        {hasActiveFilters && (
+          <button
+            onClick={resetFilters}
+            className="cursor-pointer text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-slate-700 hover:border-slate-300 transition-colors"
+          >
+            Сбросить фильтры
+          </button>
+        )}
       </div>
 
       <div className="flex items-center justify-between min-h-[1.25rem]">
