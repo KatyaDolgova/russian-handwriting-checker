@@ -7,7 +7,7 @@ export const EmptyResult = () => {
         <FileCheck className="h-7 w-7 text-slate-400" />
       </div>
       <p className="text-slate-500 font-medium">Результат появится здесь</p>
-      <p className="text-slate-400 text-sm mt-1">Введите текст и нажмите «Проверить»</p>
+      <p className="text-slate-400 text-sm mt-1">Введите текст и нажмите «Отправить»</p>
     </div>
   );
 };

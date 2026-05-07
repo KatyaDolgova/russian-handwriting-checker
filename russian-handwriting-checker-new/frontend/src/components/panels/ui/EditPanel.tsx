@@ -12,7 +12,7 @@ interface EditPanelProps {
 
 export const EditPanel = ({ check, folders, onSave, onCancel }: EditPanelProps) => {
   const [form, setForm] = useState<EditForm>(() => ({
-    score: String(check.score),
+    score: check.score != null ? String(check.score) : '',
     scoreMax: String(check.score_max ?? 5),
     comment: check.comment || '',
     corrected_text: check.corrected_text || '',

@@ -70,7 +70,8 @@ export const HistoryPanel = () => {
   };
 
   const handleSaveEdit = async (id: string, form: EditForm) => {
-    const scoreNum = parseFloat(form.score) || 0;
+    const scoreIsEmpty = form.score.trim() === '';
+    const scoreNum = scoreIsEmpty ? null : parseFloat(form.score) || 0;
     const maxNum = parseFloat(form.scoreMax) || 5;
     const workDateIso = form.workDate ? new Date(form.workDate).toISOString() : undefined;
     await api.put(`/api/check/${id}`, {
@@ -87,7 +88,7 @@ export const HistoryPanel = () => {
         c.id === id
           ? {
               ...c,
-              score: scoreNum,
+              score: scoreIsEmpty ? c.score : scoreNum,
               score_max: maxNum,
               comment: form.comment,
               corrected_text: form.corrected_text,
@@ -145,8 +146,8 @@ export const HistoryPanel = () => {
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         if (sort === 'date_asc')
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        const pa = a.score_max > 0 ? a.score / a.score_max : 0;
-        const pb = b.score_max > 0 ? b.score / b.score_max : 0;
+        const pa = a.score_max != null && a.score_max > 0 ? (a.score ?? 0) / a.score_max : 0;
+        const pb = b.score_max != null && b.score_max > 0 ? (b.score ?? 0) / b.score_max : 0;
         return sort === 'score_desc' ? pb - pa : pa - pb;
       });
   }, [checks, search, dateFilter, sort, sessionStart, filterFolder, fromDate, toDate]);
@@ -155,8 +156,8 @@ export const HistoryPanel = () => {
     if (!filtered.length) return null;
     const students = new Set(filtered.map((c) => c.pupil_name).filter(Boolean)).size;
     const scored = filtered.filter((c) => c.score != null && c.score_max != null);
-    const totalScore = scored.reduce((s, c) => s + c.score, 0);
-    const totalMax = scored.reduce((s, c) => s + c.score_max, 0);
+    const totalScore = scored.reduce((s, c) => s + (c.score ?? 0), 0);
+    const totalMax = scored.reduce((s, c) => s + (c.score_max ?? 0), 0);
     const avgPct = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : 0;
     return { total: filtered.length, students, avgPct };
   }, [filtered]);
@@ -275,7 +276,7 @@ export const HistoryPanel = () => {
             >
               {stats.avgPct}%
             </p>
-            <p className="text-xs text-slate-400 mt-0.5">Средний процент</p>
+            <p className="text-xs text-slate-400 mt-0.5">Средний процент правильных ответов</p>
           </div>
         </div>
       )}

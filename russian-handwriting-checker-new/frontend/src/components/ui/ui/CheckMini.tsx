@@ -3,7 +3,7 @@ import { formatDate } from '@/utils';
 import { FolderClosed } from 'lucide-react';
 
 export const CheckMini = ({ check, folders }: { check: CheckRecord; folders: Folder[] }) => {
-  const pct = check.score_max > 0 ? check.score / check.score_max : 0;
+  const pct = check.score_max != null && check.score_max > 0 ? (check.score ?? 0) / check.score_max : 0;
   const color =
     pct >= 0.8
       ? 'text-emerald-600 bg-emerald-50 border-emerald-200'

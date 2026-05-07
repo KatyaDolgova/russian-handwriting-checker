@@ -20,8 +20,8 @@ export interface CheckRecord {
   filename: string;
   title?: string | null;
   pupil_name?: string;
-  score: number;
-  score_max: number;
+  score: number | null;
+  score_max: number | null;
   comment: string;
   corrected_text?: string;
   original_text?: string;

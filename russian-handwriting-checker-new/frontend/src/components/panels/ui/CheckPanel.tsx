@@ -96,7 +96,7 @@ export const CheckPanel = ({
               toast.error('Ошибка проверки: ' + event.message);
             }
           } catch {
-            // skip malformed SSE line
+            //
           }
         }
       }
@@ -155,7 +155,7 @@ export const CheckPanel = ({
           ) : (
             <>
               <Sparkles className="h-4 w-4 ml-3" />
-              Проверить текст
+              Отправить запрос
               <ChevronRight className="h-4 w-4 ml-auto mr-3" />
             </>
           )}

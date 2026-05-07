@@ -27,7 +27,7 @@ export const ResultPanel = ({ result, originalText, filename, functionId }: Resu
   const toast = useToast();
   const [editedCorrected, setEditedCorrected] = useState(result.corrected_text || '');
   const [editedScore, setEditedScore] = useState(
-    result.is_generation ? '' : String(result.score ?? 0),
+    result.is_generation || result.score == null ? '' : String(result.score),
   );
   const [scoreMax, setScoreMax] = useState('5');
   const [editedComment, setEditedComment] = useState(result.comment || '');
@@ -44,7 +44,10 @@ export const ResultPanel = ({ result, originalText, filename, functionId }: Resu
   const [folders, setFolders] = useState<Folder[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [showCorrected, setShowCorrected] = useState(false);
-  const [scoreLabel, setScoreLabel] = useState<string | null>(result.score_label ?? null);
+  const rawLabel = result.score_label;
+  const [scoreLabel, setScoreLabel] = useState<string | null>(
+    rawLabel && rawLabel.toLowerCase() !== 'none' ? rawLabel : null,
+  );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -64,6 +67,7 @@ export const ResultPanel = ({ result, originalText, filename, functionId }: Resu
   }, [user]);
 
   const isGeneration: boolean = !!result.is_generation;
+
   const errors: any[] = result.errors || [];
   const criteria: Record<string, any> | null = result.criteria || null;
 
@@ -79,7 +83,7 @@ export const ResultPanel = ({ result, originalText, filename, functionId }: Resu
         corrected_text: editedCorrected,
         errors,
         score: hasScore ? parseFloat(editedScore) : null,
-        score_max: hasScore ? parseFloat(scoreMax) || 100 : null,
+        score_max: hasScore ? parseFloat(scoreMax) || 5 : null,
         comment: editedComment,
         function_id: functionId,
         pupil_name: pupilName.trim() || undefined,
@@ -97,7 +101,7 @@ export const ResultPanel = ({ result, originalText, filename, functionId }: Resu
 
   const handlePrint = () => {
     const scoreDisplay =
-      result.score_label ?? `${parseFloat(editedScore) || 0} / ${parseFloat(scoreMax) || 100}`;
+      result.score_label ?? `${parseFloat(editedScore) || 0} / ${parseFloat(scoreMax) || 5}`;
     const html = `<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -264,42 +268,38 @@ export const ResultPanel = ({ result, originalText, filename, functionId }: Resu
         </div>
       </div>
 
-      <div
-        className={`grid gap-4 px-5 py-3 border-b border-slate-100 ${isGeneration && !isEditing ? 'grid-cols-1' : 'grid-cols-2'}`}
-      >
-        {(!isGeneration || isEditing) && (
-          <div>
-            <p className="text-xs text-slate-400 mb-2 font-medium uppercase tracking-wide">
-              Оценка
-            </p>
-            {isEditing ? (
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={editedScore}
-                  onChange={(e) => {
-                    setEditedScore(e.target.value);
-                    setScoreLabel(null);
-                  }}
-                  className="w-20 p-2 border border-slate-300 rounded-xl text-lg font-bold text-center focus:outline-none focus:border-indigo-400 cursor-text"
-                  placeholder="0"
-                />
-                <span className="text-slate-400 text-sm font-medium">из</span>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={scoreMax}
-                  onChange={(e) => setScoreMax(e.target.value)}
-                  className="w-20 p-2 border border-slate-300 rounded-xl text-lg font-bold text-center focus:outline-none focus:border-indigo-400 cursor-text"
-                  placeholder="100"
-                />
-              </div>
-            ) : (
-              <ScoreBadge score={editedScore} label={scoreLabel} max={scoreMax} />
-            )}
-          </div>
-        )}
+      <div className="grid grid-cols-2 gap-4 px-5 py-3 border-b border-slate-100">
+        <div>
+          <p className="text-xs text-slate-400 mb-2 font-medium uppercase tracking-wide">
+            Оценка
+          </p>
+          {scoreLabel ? (
+            <ScoreBadge score={editedScore} label={scoreLabel} max={scoreMax} />
+          ) : (
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                inputMode="decimal"
+                value={editedScore}
+                onChange={(e) => {
+                  setEditedScore(e.target.value);
+                  setScoreLabel(null);
+                }}
+                className="w-20 p-2 border border-slate-200 rounded-xl text-lg font-bold text-center focus:outline-none focus:border-indigo-400 cursor-text bg-slate-50 hover:border-slate-300 transition-colors"
+                placeholder="—"
+              />
+              <span className="text-slate-400 text-sm font-medium shrink-0">из</span>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={scoreMax}
+                onChange={(e) => setScoreMax(e.target.value)}
+                className="w-20 p-2 border border-slate-200 rounded-xl text-lg font-bold text-center focus:outline-none focus:border-indigo-400 cursor-text bg-slate-50 hover:border-slate-300 transition-colors"
+                placeholder="5"
+              />
+            </div>
+          )}
+        </div>
         <div>
           <p className="text-xs text-slate-400 mb-2 font-medium uppercase tracking-wide">
             Комментарий

@@ -108,11 +108,11 @@ export const StudentsPanel = () => {
     map.forEach((cs, key) => {
       if (key === '\x00') return;
       const scored = cs.filter((c) => c.score != null && c.score_max != null);
-      const totalScore = scored.reduce((s, c) => s + c.score, 0);
-      const totalMax = scored.reduce((s, c) => s + c.score_max, 0);
+      const totalScore = scored.reduce((s, c) => s + (c.score ?? 0), 0);
+      const totalMax = scored.reduce((s, c) => s + (c.score_max ?? 0), 0);
       const avgPct = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : 0;
       const avgScore = scored.length > 0 ? Math.round((totalScore / scored.length) * 10) / 10 : 0;
-      const pcts = scored.map((c) => (c.score_max > 0 ? (c.score / c.score_max) * 100 : 0));
+      const pcts = scored.map((c) => (c.score_max != null && c.score_max > 0 ? ((c.score ?? 0) / c.score_max) * 100 : 0));
       result.push({
         name: key,
         checks: [...cs].sort((a, b) => {
@@ -144,8 +144,8 @@ export const StudentsPanel = () => {
       .flatMap((s) => s.checks)
       .filter((c) => c.score != null && c.score_max != null);
     if (!groupChecks.length) return 0;
-    const totalScore = groupChecks.reduce((s, c) => s + c.score, 0);
-    const totalMax = groupChecks.reduce((s, c) => s + c.score_max, 0);
+    const totalScore = groupChecks.reduce((s, c) => s + (c.score ?? 0), 0);
+    const totalMax = groupChecks.reduce((s, c) => s + (c.score_max ?? 0), 0);
     return totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : 0;
   }, [filteredStudents]);
 
