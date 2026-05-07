@@ -195,8 +195,7 @@ export const ProfilePage = () => {
                 disabled={savingProfile}
                 className="cursor-pointer flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-colors"
               >
-                <Save className="h-4 w-4" />
-                {savingProfile ? 'Сохранение...' : 'Сохранить'}
+                <>{savingProfile ? 'Сохранение...' : 'Сохранить'}</>
               </button>
             </div>
           </SectionCard>
