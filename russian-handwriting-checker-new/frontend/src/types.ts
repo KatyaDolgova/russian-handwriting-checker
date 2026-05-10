@@ -2,6 +2,8 @@ export type DateFilter = 'all' | 'week' | 'month' | 'custom';
 export type SortKey = 'date_desc' | 'date_asc' | 'score_desc' | 'score_asc';
 export type ToastType = 'error' | 'success' | 'info';
 export type Tab = 'mine' | 'gallery';
+export type PctFilter = 'all' | 'low' | 'mid' | 'high';
+export type StudentsSortKey = 'works_desc' | 'pct_desc' | 'pct_asc' | 'name_asc' | 'date_desc';
 
 export interface Folder {
   id: string;

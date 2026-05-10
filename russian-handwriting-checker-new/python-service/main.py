@@ -29,6 +29,7 @@ async def startup():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         await conn.execute(text("ALTER TABLE checks ADD COLUMN IF NOT EXISTS title VARCHAR"))
+        await conn.execute(text("ALTER TABLE checks ALTER COLUMN score_max DROP NOT NULL"))
         await conn.execute(text("ALTER TABLE functions ADD COLUMN IF NOT EXISTS user_id VARCHAR"))
         await conn.execute(text("ALTER TABLE functions ADD COLUMN IF NOT EXISTS is_published BOOLEAN DEFAULT FALSE"))
         await conn.execute(text("ALTER TABLE functions ADD COLUMN IF NOT EXISTS original_function_id VARCHAR"))

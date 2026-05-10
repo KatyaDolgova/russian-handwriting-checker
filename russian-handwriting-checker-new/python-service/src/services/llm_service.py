@@ -7,7 +7,7 @@ class LLMService:
     def __init__(self):
         self.client = AsyncOpenAI(
             base_url=settings.ollama_base_url,
-            api_key="ollama",
+            api_key=settings.openai_api_key,
         )
 
     async def generate(self, messages: list, timeout: float = 180.0) -> str:

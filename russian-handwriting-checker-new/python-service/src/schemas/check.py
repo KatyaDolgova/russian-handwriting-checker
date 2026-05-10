@@ -30,3 +30,4 @@ class UpdateCheckRequest(BaseModel):
     corrected_text: Optional[str] = None
     pupil_name: Optional[str] = None
     work_date: Optional[datetime] = None
+    folder_id: Optional[str] = None

@@ -14,7 +14,7 @@ class FunctionRepository:
 
     async def list(self, user_id: str | None = None) -> list[Function]:
         q = select(Function).where(
-            or_(Function.is_default == True, Function.user_id == user_id)  # noqa: E712
+            or_(Function.is_default == True, Function.user_id == user_id)
         )
         res = await self.db.execute(q)
         return res.scalars().all()
@@ -45,7 +45,7 @@ class FunctionRepository:
         await self.db.delete(obj)
         await self.db.commit()
 
-    # ── Галерея ──────────────────────────────────────────────────────────────
+     # Галерея
 
     async def list_gallery(self, user_id: str | None = None, search: str = "") -> list[dict]:
         max_ver_subq = (
@@ -92,7 +92,7 @@ class FunctionRepository:
             for fn, display_name, max_ver in rows
         ]
 
-    # ── Публикация ────────────────────────────────────────────────────────────
+    # Публикация
 
     async def publish(self, function_id: str, change_note: str | None = None) -> Function:
         obj = await self.get(function_id)
@@ -145,7 +145,7 @@ class FunctionRepository:
         await self.db.commit()
         return obj
 
-    # ── Копирование ───────────────────────────────────────────────────────────
+    # Копирование
 
     async def copy(self, function_id: str, user_id: str) -> Function:
         src = await self.get(function_id)
@@ -165,7 +165,7 @@ class FunctionRepository:
         await self.db.refresh(copied)
         return copied
 
-    # ── Версии ────────────────────────────────────────────────────────────────
+    # Версии
 
     async def get_versions(self, function_id: str) -> list[FunctionVersion]:
         result = await self.db.execute(

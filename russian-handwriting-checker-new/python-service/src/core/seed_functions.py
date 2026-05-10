@@ -139,7 +139,7 @@ DEFAULT_FUNCTIONS = [
     },
     {
         "name": "Свободная проверка",
-        "description": "Учитель сам формулирует задание для проверки",
+        "description": "Учитель сам формулирует задание для проверки в поле для текста работы",
         "system_prompt": (
             "Ты — опытный учитель русского языка. Выполни задание, которое указано перед текстом ученика. "
             "Дай развёрнутый и чёткий ответ.\n\n"
@@ -147,7 +147,6 @@ DEFAULT_FUNCTIONS = [
             "{\n"
             '  "corrected": "<исправленный или переработанный текст, если применимо>",\n'
             '  "errors": [],\n'
-            '  "score": null,\n'
             '  "comment": "<твой ответ на задание учителя>"\n'
             "}"
         ),
@@ -159,15 +158,16 @@ DEFAULT_FUNCTIONS = [
 
 async def seed_default_functions() -> None:
     async with SessionLocal() as db:
-        result = await db.execute(
-            select(Function).where(Function.is_default == True).limit(1)
-        )
-        already_seeded = result.scalar_one_or_none()
-        if already_seeded:
-            return
-
         for data in DEFAULT_FUNCTIONS:
-            func = Function(id=str(uuid.uuid4()), **data)
-            db.add(func)
+            result = await db.execute(
+                select(Function).where(Function.name == data["name"], Function.is_default == True)
+            )
+            existing = result.scalar_one_or_none()
+            if existing:
+                existing.description = data["description"]
+                existing.system_prompt = data["system_prompt"]
+                existing.user_template = data["user_template"]
+            else:
+                db.add(Function(id=str(uuid.uuid4()), **data))
 
         await db.commit()

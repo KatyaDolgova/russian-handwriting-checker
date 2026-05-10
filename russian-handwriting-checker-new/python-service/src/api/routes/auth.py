@@ -15,6 +15,26 @@ from src.models.group import Group
 
 router = APIRouter(prefix="/auth")
 
+_SUPABASE_ERRORS = {
+    "invalid login credentials": "Неверный email или пароль",
+    "invalid email or password": "Неверный email или пароль",
+    "email not confirmed": "Email не подтверждён. Проверьте почту и перейдите по ссылке",
+    "user already registered": "Пользователь с таким email уже зарегистрирован",
+    "password should be at least 6 characters": "Пароль должен содержать не менее 6 символов",
+    "unable to validate email address": "Некорректный адрес электронной почты",
+    "signup is disabled": "Регистрация временно недоступна",
+    "email rate limit exceeded": "Слишком много попыток. Попробуйте позже",
+    "too many requests": "Слишком много запросов. Попробуйте позже",
+}
+
+
+def _translate(e: Exception) -> str:
+    raw = (getattr(e, "message", None) or str(e)).lower()
+    for key, ru in _SUPABASE_ERRORS.items():
+        if key in raw:
+            return ru
+    return "Произошла ошибка. Попробуйте позже"
+
 
 def _require_supabase():
     if supabase is None:
@@ -58,7 +78,7 @@ async def register(data: RegisterRequest):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=getattr(e, "message", None) or str(e))
+        raise HTTPException(status_code=400, detail=_translate(e))
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -76,7 +96,7 @@ async def login(data: LoginRequest):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=401, detail=getattr(e, "message", None) or str(e))
+        raise HTTPException(status_code=401, detail=_translate(e))
 
 
 @router.get("/me")
@@ -167,4 +187,4 @@ async def change_password(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=getattr(e, "message", None) or str(e))
+        raise HTTPException(status_code=400, detail=_translate(e))

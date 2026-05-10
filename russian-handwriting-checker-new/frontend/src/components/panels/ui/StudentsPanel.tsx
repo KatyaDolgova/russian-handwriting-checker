@@ -1,15 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
-import {
-  User2,
-  Loader2,
-  ChevronDown,
-  ChevronUp,
-  Users,
-  Search,
-  X,
-} from 'lucide-react';
+import { User2, Loader2, ChevronDown, ChevronUp, Users, Search, X } from 'lucide-react';
 import api from '@/api';
-import type { CheckRecord, Folder, Group } from '@/types';
+import type { CheckRecord, Folder, Group, PctFilter, StudentsSortKey as SortKey } from '@/types';
 import { formatDate, scoreColor } from '@/utils';
 import { ScoreBar, CheckMini, GroupSection } from '@/components/ui';
 
@@ -22,9 +14,6 @@ interface StudentStats {
   worst: number;
   lastDate: string;
 }
-
-type SortKey = 'works_desc' | 'pct_desc' | 'pct_asc' | 'name_asc' | 'date_desc';
-type PctFilter = 'all' | 'low' | 'mid' | 'high';
 
 export const StudentsPanel = () => {
   const [checks, setChecks] = useState<CheckRecord[]>([]);
@@ -49,9 +38,18 @@ export const StudentsPanel = () => {
       api
         .get('/api/check/history')
         .then((r) => r.data.map((c: CheckRecord) => ({ ...c, score_max: c.score_max ?? 5 }))),
-      api.get('/api/groups/').then((r) => r.data).catch(() => []),
-      api.get('/api/groups/pupils').then((r) => r.data).catch(() => []),
-      api.get('/api/folders/').then((r) => r.data).catch(() => []),
+      api
+        .get('/api/groups/')
+        .then((r) => r.data)
+        .catch(() => []),
+      api
+        .get('/api/groups/pupils')
+        .then((r) => r.data)
+        .catch(() => []),
+      api
+        .get('/api/folders/')
+        .then((r) => r.data)
+        .catch(() => []),
     ])
       .then(([ch, gr, pg, fl]) => {
         setChecks(ch);
@@ -77,7 +75,9 @@ export const StudentsPanel = () => {
     setGroups((prev) => prev.filter((g) => g.id !== id));
     setPupilGroups((prev) => {
       const next = new Map(prev);
-      next.forEach((gid, name) => { if (gid === id) next.delete(name); });
+      next.forEach((gid, name) => {
+        if (gid === id) next.delete(name);
+      });
       return next;
     });
     if (filterGroup === id) setFilterGroup('all');
@@ -221,10 +221,7 @@ export const StudentsPanel = () => {
   const hasAnyStudents = checks.some((c) => c.pupil_name?.trim());
 
   const hasActiveFilters =
-    search.trim() !== '' ||
-    filterGroup !== 'all' ||
-    filterFolder !== 'all' ||
-    pctFilter !== 'all';
+    search.trim() !== '' || filterGroup !== 'all' || filterFolder !== 'all' || pctFilter !== 'all';
 
   if (loading)
     return (
@@ -315,12 +312,14 @@ export const StudentsPanel = () => {
       <div className="flex flex-wrap gap-3 items-center">
         {/* Performance quick filter */}
         <div className="flex bg-white border border-slate-200 rounded-xl p-0.5 gap-0.5">
-          {([
-            ['all', 'Все'],
-            ['low', '< 50%'],
-            ['mid', '50–80%'],
-            ['high', '≥ 80%'],
-          ] as [PctFilter, string][]).map(([val, label]) => (
+          {(
+            [
+              ['all', 'Все'],
+              ['low', '< 50%'],
+              ['mid', '50–80%'],
+              ['high', '≥ 80%'],
+            ] as [PctFilter, string][]
+          ).map(([val, label]) => (
             <button
               key={val}
               onClick={() => setPctFilter(val)}
@@ -459,9 +458,7 @@ export const StudentsPanel = () => {
 
                   {/* Main row */}
                   <button
-                    onClick={() =>
-                      setExpandedName(isExpanded ? null : student.name)
-                    }
+                    onClick={() => setExpandedName(isExpanded ? null : student.name)}
                     className="cursor-pointer flex-1 flex items-center gap-4 px-4 py-4 hover:bg-slate-50 transition-colors text-left"
                   >
                     <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center shrink-0">
@@ -471,7 +468,9 @@ export const StudentsPanel = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline gap-2 flex-wrap mb-0.5">
                         <p className="font-semibold text-slate-800 text-sm">{student.name}</p>
-                        <span className={`text-sm font-bold tabular-nums ${scoreColor(student.avgPct)}`}>
+                        <span
+                          className={`text-sm font-bold tabular-nums ${scoreColor(student.avgPct)}`}
+                        >
                           {student.avgScore.toFixed(1)}
                         </span>
                         <span className="text-xs text-slate-400">ср. балл</span>
@@ -484,7 +483,11 @@ export const StudentsPanel = () => {
                       </div>
                       <p className="text-xs text-slate-400">
                         {student.checks.length}{' '}
-                        {student.checks.length === 1 ? 'работа' : student.checks.length < 5 ? 'работы' : 'работ'}
+                        {student.checks.length === 1
+                          ? 'работа'
+                          : student.checks.length < 5
+                            ? 'работы'
+                            : 'работ'}
                         {' · '}последняя {formatDate(student.lastDate)}
                       </p>
                       <div className="mt-2 max-w-xs">

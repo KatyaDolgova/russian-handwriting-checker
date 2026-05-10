@@ -29,7 +29,7 @@ class CheckService:
     async def _build_messages(self, text: str, function_id: str) -> list:
         func = await self.function_repo.get(function_id)
         if not func:
-            raise ValueError(f"Function {function_id} not found")
+            raise ValueError(f"Функция {function_id} не найдена")
         tmpl = (func.user_template or "").strip()
         if not tmpl:
             # Шаблон пустой — отправляем текст напрямую или дефолтную команду
@@ -46,11 +46,14 @@ class CheckService:
 
     def _build_result(self, original_text: str, data: dict, raw_text: str = "") -> dict:
         is_generation = "corrected" not in data and "errors" not in data
-        raw_score = data.get("score", 0 if is_generation else 75)
-        try:
-            score = float(raw_score)
-        except (TypeError, ValueError):
-            score = 0.0
+        raw_score = data.get("score")
+        if raw_score is None:
+            score = None
+        else:
+            try:
+                score = float(raw_score)
+            except (TypeError, ValueError):
+                score = None
 
         errors = data.get("errors") or []
         corrected = data.get("corrected") or (raw_text.strip() if is_generation else original_text)
@@ -58,7 +61,7 @@ class CheckService:
             "corrected_text": corrected,
             "errors": errors,
             "score": score,
-            "score_label": str(raw_score) if not isinstance(raw_score, (int, float)) else None,
+            "score_label": str(raw_score) if raw_score is not None and not isinstance(raw_score, (int, float)) else None,
             "criteria": data.get("criteria"),
             "comment": data.get("comment", ""),
             "html_highlighted": self._highlight(original_text, errors),
@@ -66,7 +69,6 @@ class CheckService:
         }
 
     def _parse(self, raw: str) -> dict:
-        # Try to extract a JSON block from anywhere in the response
         match = re.search(r"\{[\s\S]*\}", raw)
         if not match:
             logger.warning("LLM response contains no JSON block")
