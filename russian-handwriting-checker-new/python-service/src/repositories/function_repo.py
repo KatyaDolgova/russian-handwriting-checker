@@ -174,3 +174,34 @@ class FunctionRepository:
             .order_by(FunctionVersion.version_number.desc())
         )
         return result.scalars().all()
+
+    async def create_version(self, function_id: str, change_note: str | None = None) -> FunctionVersion:
+        obj = await self.get(function_id)
+        max_ver_result = await self.db.execute(
+            select(sa_func.max(FunctionVersion.version_number))
+            .where(FunctionVersion.function_id == function_id)
+        )
+        max_ver = max_ver_result.scalar() or 0
+        ver = FunctionVersion(
+            id=str(uuid.uuid4()),
+            function_id=function_id,
+            version_number=max_ver + 1,
+            name=obj.name,
+            description=obj.description,
+            system_prompt=obj.system_prompt,
+            user_template=obj.user_template or "",
+            change_note=change_note,
+        )
+        self.db.add(ver)
+        await self.db.commit()
+        await self.db.refresh(ver)
+        return ver
+
+    async def delete_version(self, version_id: str) -> None:
+        result = await self.db.execute(
+            select(FunctionVersion).where(FunctionVersion.id == version_id)
+        )
+        ver = result.scalar_one_or_none()
+        if ver:
+            await self.db.delete(ver)
+            await self.db.commit()

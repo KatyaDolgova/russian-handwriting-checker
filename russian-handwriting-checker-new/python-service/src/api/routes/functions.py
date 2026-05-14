@@ -12,6 +12,9 @@ router = APIRouter(prefix="/functions")
 class PublishRequest(BaseModel):
     change_note: Optional[str] = None
 
+class CreateVersionRequest(BaseModel):
+    change_note: Optional[str] = None
+
 @router.get("/")
 async def list_functions(
     db=Depends(get_db),
@@ -45,10 +48,10 @@ async def update_function(
     if obj.user_id != current_user["user_id"]:
         raise HTTPException(status_code=403, detail="Нет прав на редактирование этой функции")
 
+    was_published = obj.is_published
     updated = await repo.update(function_id, data)
 
-    # Если функция уже опубликована — автоматически создаём новую версию
-    if obj.is_published:
+    if was_published:
         await repo.republish(function_id)
 
     return updated
@@ -132,6 +135,40 @@ async def function_versions(
     obj = await repo.get(function_id)
     if not obj:
         raise HTTPException(status_code=404, detail="Функция не найдена")
-    if obj.user_id != current_user["user_id"]:
+    is_owner = obj.user_id == current_user["user_id"]
+    if not is_owner and not obj.is_published:
         raise HTTPException(status_code=403, detail="Нет прав")
     return await repo.get_versions(function_id)
+
+
+@router.post("/{function_id}/versions")
+async def create_version(
+    function_id: str,
+    body: CreateVersionRequest = CreateVersionRequest(),
+    db=Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    repo = FunctionRepository(db)
+    obj = await repo.get(function_id)
+    if not obj:
+        raise HTTPException(status_code=404, detail="Функция не найдена")
+    if obj.user_id != current_user["user_id"]:
+        raise HTTPException(status_code=403, detail="Нет прав")
+    return await repo.create_version(function_id, body.change_note)
+
+
+@router.delete("/{function_id}/versions/{version_id}")
+async def delete_version(
+    function_id: str,
+    version_id: str,
+    db=Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    repo = FunctionRepository(db)
+    obj = await repo.get(function_id)
+    if not obj:
+        raise HTTPException(status_code=404, detail="Функция не найдена")
+    if obj.user_id != current_user["user_id"]:
+        raise HTTPException(status_code=403, detail="Нет прав")
+    await repo.delete_version(version_id)
+    return {"success": True}

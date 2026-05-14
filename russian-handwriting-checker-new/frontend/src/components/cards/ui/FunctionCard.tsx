@@ -11,6 +11,7 @@ import {
   Loader2,
   Lock,
   History,
+  BookmarkPlus,
 } from 'lucide-react';
 import api from '@/api';
 import { FunctionForm } from '@/components/ui/ui/FunctionForm';
@@ -56,9 +57,12 @@ export const FunctionCard = ({
   const [showVersions, setShowVersions] = useState(false);
   const [versions, setVersions] = useState<FnVersion[]>([]);
   const [versionsLoading, setVersionsLoading] = useState(false);
+  const [savingVersion, setSavingVersion] = useState(false);
+  const [versionNote, setVersionNote] = useState('');
+  const [showVersionInput, setShowVersionInput] = useState(false);
 
-  const loadVersions = useCallback(async () => {
-    if (versions.length > 0) return;
+  const loadVersions = useCallback(async (force = false) => {
+    if (versions.length > 0 && !force) return;
     setVersionsLoading(true);
     try {
       const r = await api.get(`/api/functions/${fn.id}/versions`);
@@ -71,6 +75,24 @@ export const FunctionCard = ({
   const handleToggleVersions = () => {
     if (!showVersions) loadVersions();
     setShowVersions((v) => !v);
+  };
+
+  const handleSaveVersion = async () => {
+    setSavingVersion(true);
+    try {
+      await api.post(`/api/functions/${fn.id}/versions`, { change_note: versionNote || null });
+      setVersionNote('');
+      setShowVersionInput(false);
+      await loadVersions(true);
+      setShowVersions(true);
+    } finally {
+      setSavingVersion(false);
+    }
+  };
+
+  const handleDeleteVersion = async (versionId: string) => {
+    await api.delete(`/api/functions/${fn.id}/versions/${versionId}`);
+    setVersions((prev) => prev.filter((v) => v.id !== versionId));
   };
 
   return (
@@ -241,32 +263,73 @@ export const FunctionCard = ({
                 </p>
               )}
 
-              {isOwn && fn.is_published && (
-                <div className="pt-1 border-t border-slate-100">
-                  <button
-                    onClick={handleToggleVersions}
-                    className="cursor-pointer flex items-center gap-2 text-xs text-slate-500 hover:text-indigo-600 transition-colors py-1"
-                  >
-                    {versionsLoading ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <History className="h-3.5 w-3.5" />
+              {(isOwn || fn.is_published) && (
+                <div className="pt-1 border-t border-slate-100 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleToggleVersions}
+                      className="cursor-pointer flex items-center gap-2 text-xs text-slate-500 hover:text-indigo-600 transition-colors py-1"
+                    >
+                      {versionsLoading ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <History className="h-3.5 w-3.5" />
+                      )}
+                      {showVersions ? 'Скрыть историю версий' : 'История версий'}
+                      {!showVersions && versions.length > 0 && (
+                        <span className="bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">
+                          {versions.length}
+                        </span>
+                      )}
+                    </button>
+                    {isOwn && (
+                      <button
+                        onClick={() => setShowVersionInput((v) => !v)}
+                        className="cursor-pointer flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-700 transition-colors py-1 ml-auto"
+                        title="Сохранить текущее состояние как версию"
+                      >
+                        <BookmarkPlus className="h-3.5 w-3.5" />
+                        Сохранить версию
+                      </button>
                     )}
-                    {showVersions ? 'Скрыть историю версий' : 'История версий'}
-                    {!showVersions && versions.length > 0 && (
-                      <span className="bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">
-                        {versions.length}
-                      </span>
-                    )}
-                  </button>
+                  </div>
+
+                  {isOwn && showVersionInput && (
+                    <div className="flex items-center gap-2">
+                      <input
+                        value={versionNote}
+                        onChange={(e) => setVersionNote(e.target.value)}
+                        placeholder="Заметка (необязательно)"
+                        className="cursor-text flex-1 text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-400"
+                      />
+                      <button
+                        onClick={handleSaveVersion}
+                        disabled={savingVersion}
+                        className="cursor-pointer text-xs bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg font-medium transition-colors shrink-0"
+                      >
+                        {savingVersion ? '...' : 'Сохранить'}
+                      </button>
+                      <button
+                        onClick={() => { setShowVersionInput(false); setVersionNote(''); }}
+                        className="cursor-pointer text-xs text-slate-400 hover:text-slate-600 transition-colors px-1"
+                      >
+                        Отмена
+                      </button>
+                    </div>
+                  )}
 
                   {showVersions && (
-                    <div className="mt-2 space-y-1.5">
+                    <div className="space-y-1.5">
                       {versions.length === 0 && !versionsLoading && (
                         <p className="text-xs text-slate-400 italic pl-1">Версии не найдены</p>
                       )}
                       {versions.map((ver, idx) => (
-                        <VersionRow key={ver.id} ver={ver} isLatest={idx === 0} />
+                        <VersionRow
+                          key={ver.id}
+                          ver={ver}
+                          isLatest={idx === 0}
+                          onDelete={isOwn ? handleDeleteVersion : undefined}
+                        />
                       ))}
                     </div>
                   )}
