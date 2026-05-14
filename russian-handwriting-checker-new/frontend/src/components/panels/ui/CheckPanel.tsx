@@ -12,6 +12,7 @@ interface CheckPanelProps {
   onStreamChunk: (chunk: string) => void;
   onStreamStart: () => void;
   onStreamCancel?: () => void;
+  onFunctionSelect?: (fn: Fn | null) => void;
 }
 
 export const CheckPanel = ({
@@ -21,6 +22,7 @@ export const CheckPanel = ({
   onStreamChunk,
   onStreamStart,
   onStreamCancel,
+  onFunctionSelect,
 }: CheckPanelProps) => {
   const [functions, setFunctions] = useState<Fn[]>([]);
   const [selectedId, setSelectedId] = useState('');
@@ -31,7 +33,10 @@ export const CheckPanel = ({
     api.get('/api/functions/').then((res) => {
       const data: Fn[] = Array.isArray(res.data) ? res.data : [];
       setFunctions(data);
-      if (data.length > 0) setSelectedId(data[0].id);
+      if (data.length > 0) {
+        setSelectedId(data[0].id);
+        onFunctionSelect?.(data[0]);
+      }
     });
   }, []);
 
@@ -133,7 +138,7 @@ export const CheckPanel = ({
               <button
                 key={fn.id}
                 data-active={selectedId === fn.id}
-                onClick={() => setSelectedId(fn.id)}
+                onClick={() => { setSelectedId(fn.id); onFunctionSelect?.(fn); }}
                 title={fn.description}
                 className={`cursor-pointer py-3 px-4 rounded-xl text-sm font-medium border transition-all text-left leading-tight ${PALETTE[idx % PALETTE.length]}`}
               >

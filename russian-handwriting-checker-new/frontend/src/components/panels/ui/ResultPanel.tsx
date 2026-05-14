@@ -15,21 +15,72 @@ import { useToast } from '@/components/ui/ui/Toast';
 import { CopyBtn, ScoreBadge } from '@/components/ui';
 import type { Folder, Pupil } from '@/types';
 
+const CommentBlock = ({ text }: { text: string }) => {
+  const [expanded, setExpanded] = useState(false);
+  if (!text) return <p className="text-slate-400 text-sm">—</p>;
+  const isLong = text.length > 180;
+  return (
+    <div>
+      <p className="text-slate-600 text-sm leading-relaxed">
+        {isLong && !expanded ? text.slice(0, 180) + '…' : text}
+      </p>
+      {isLong && (
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="cursor-pointer text-xs text-indigo-500 hover:text-indigo-700 mt-1 transition-colors"
+        >
+          {expanded ? 'Свернуть' : 'Показать полностью'}
+        </button>
+      )}
+    </div>
+  );
+};
+
 interface ResultPanelProps {
   result: any;
   originalText: string;
+  sourceText?: string;
   filename: string;
   functionId: string;
 }
 
-export const ResultPanel = ({ result, originalText, filename, functionId }: ResultPanelProps) => {
+export const ResultPanel = ({ result, originalText, sourceText = '', filename, functionId }: ResultPanelProps) => {
   const { user } = useAuth();
   const toast = useToast();
   const [editedCorrected, setEditedCorrected] = useState(result.corrected_text || '');
-  const [editedScore, setEditedScore] = useState(
-    result.is_generation || result.score == null ? '' : String(result.score),
-  );
-  const [scoreMax, setScoreMax] = useState('5');
+  const [editedScore, setEditedScore] = useState(() => {
+    if (result.is_generation) return '';
+    // Зачёт/незачёт
+    if (typeof result.score === 'string') return result.score.toLowerCase();
+    // Критерии только с result (зачёт/незачёт) без числовых баллов
+    const crit = result.criteria as Record<string, any> | null | undefined;
+    if (crit && Object.values(crit).every((v: any) => v.result !== undefined && v.score === undefined)) {
+      return (Object.values(crit) as any[]).every((v) => v.result === 'зачёт') ? 'зачёт' : 'незачёт';
+    }
+    if (result.score == null) return '';
+    // Числовые критерии — считаем сумму
+    if (crit) {
+      const vals = Object.values(crit);
+      const hasNumeric = vals.some((v: any) => typeof v.score === 'number');
+      if (hasNumeric) {
+        const total = vals.reduce((sum: number, v: any) =>
+          sum + (typeof v.score === 'number' ? v.score : 0), 0);
+        return String(total);
+      }
+    }
+    return String(result.score);
+  });
+  const [scoreMax, setScoreMax] = useState(() => {
+    const crit = result.criteria as Record<string, any> | null | undefined;
+    if (crit) {
+      const total = Object.values(crit).reduce((sum: number, v: any) => {
+        return sum + (v.max != null ? Number(v.max) : 0);
+      }, 0);
+      if (total > 0) return String(total);
+    }
+    if (result.score_max != null) return String(result.score_max);
+    return '5';
+  });
   const [editedComment, setEditedComment] = useState(result.comment || '');
   const [title, setTitle] = useState('');
   const [pupilId, setPupilId] = useState('');
@@ -69,6 +120,12 @@ export const ResultPanel = ({ result, originalText, filename, functionId }: Resu
 
   const errors: any[] = result.errors || [];
   const criteria: Record<string, any> | null = result.criteria || null;
+  const passFail: string | null =
+    typeof result.score === 'string' && ['зачёт', 'незачёт'].includes(result.score.toLowerCase())
+      ? result.score.toLowerCase()
+      : criteria && Object.values(criteria).every((v: any) => v.result !== undefined && v.score === undefined)
+        ? (Object.values(criteria) as any[]).every((v) => v.result === 'зачёт') ? 'зачёт' : 'незачёт'
+        : null;
 
   const handleSave = async () => {
     setSaving(true);
@@ -85,13 +142,17 @@ export const ResultPanel = ({ result, originalText, filename, functionId }: Resu
         setPupilId(res.data.id);
       }
 
-      const hasScore = editedScore.trim() !== '';
+      const isPassFailResult = passFail != null;
+      const hasScore = !isPassFailResult && editedScore.trim() !== '';
       await api.post('/api/check/save', {
         filename,
         title: title.trim() || undefined,
+        source_text: sourceText || undefined,
         original_text: originalText,
         corrected_text: editedCorrected,
         errors,
+        criteria: criteria || undefined,
+        pass_fail: isPassFailResult ? editedScore : undefined,
         score: hasScore ? parseFloat(editedScore) : null,
         score_max: hasScore ? parseFloat(scoreMax) || 5 : null,
         comment: editedComment,
@@ -279,12 +340,41 @@ export const ResultPanel = ({ result, originalText, filename, functionId }: Resu
         </div>
       </div>
 
+      {(() => {
+        const minWords: number | null = result.min_words ?? null;
+        if (!minWords) return null;
+        const wordCount = originalText.trim().split(/\s+/).filter(Boolean).length;
+        if (wordCount >= minWords) return null;
+        return (
+          <div className="mx-5 mb-2 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+            <span>
+              Текст слишком короткий ({wordCount} сл. из минимум {minWords}).
+              Результат проверки может быть неточным — работа не соответствует требованиям к объёму.
+            </span>
+          </div>
+        );
+      })()}
+
       <div className="grid grid-cols-2 gap-4 px-5 py-3 border-b border-slate-100">
         <div>
           <p className="text-xs text-slate-400 mb-2 font-medium uppercase tracking-wide">
             Оценка
           </p>
-          {scoreLabel ? (
+          {passFail != null ? (
+            <select
+              value={editedScore}
+              onChange={(e) => setEditedScore(e.target.value)}
+              className={`cursor-pointer w-full px-3 py-2 border-2 rounded-xl text-sm font-bold focus:outline-none transition-colors ${
+                editedScore === 'зачёт'
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700 focus:border-emerald-400'
+                  : 'border-red-200 bg-red-50 text-red-700 focus:border-red-400'
+              }`}
+            >
+              <option value="зачёт">Зачёт</option>
+              <option value="незачёт">Незачёт</option>
+            </select>
+          ) : scoreLabel ? (
             <ScoreBadge score={editedScore} label={scoreLabel} max={scoreMax} />
           ) : (
             <div className="flex items-center gap-2">
@@ -322,9 +412,7 @@ export const ResultPanel = ({ result, originalText, filename, functionId }: Resu
               className="w-full p-2 border border-slate-300 rounded-xl text-sm h-20 resize-none focus:outline-none focus:border-indigo-400 cursor-text"
             />
           ) : (
-            <p className="text-slate-600 text-sm leading-relaxed line-clamp-4">
-              {editedComment || '—'}
-            </p>
+            <CommentBlock text={editedComment} />
           )}
         </div>
       </div>
@@ -334,18 +422,23 @@ export const ResultPanel = ({ result, originalText, filename, functionId }: Resu
           <p className="text-xs text-slate-400 mb-3 font-medium uppercase tracking-wide">
             Критерии
           </p>
-          <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto">
+          <div className="grid grid-cols-2 gap-1.5 max-h-64 overflow-y-auto">
             {Object.entries(criteria).map(([key, val]: [string, any]) => (
               <div
                 key={key}
-                className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-1.5 text-xs"
+                title={val.comment || undefined}
+                className="flex items-start gap-2 bg-slate-50 rounded-lg px-3 py-1.5 text-xs cursor-default"
               >
-                <span className="font-semibold text-slate-600 w-8 shrink-0">{key}</span>
-                <span className="text-indigo-600 font-bold shrink-0">
+                <span className="font-semibold text-slate-600 w-8 shrink-0 pt-0.5">{key}</span>
+                <span className="text-indigo-600 font-bold shrink-0 pt-0.5">
                   {val.score !== undefined ? val.score : val.result}
                 </span>
-                {val.max !== undefined && <span className="text-slate-300">/{val.max}</span>}
-                {val.comment && <span className="text-slate-400 truncate">{val.comment}</span>}
+                {val.max !== undefined && (
+                  <span className="text-slate-300 shrink-0 pt-0.5">/{val.max}</span>
+                )}
+                {val.comment && (
+                  <span className="text-slate-400 leading-tight">{val.comment}</span>
+                )}
               </div>
             ))}
           </div>

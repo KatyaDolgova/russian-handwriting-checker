@@ -13,6 +13,7 @@ interface EditPanelProps {
 
 export const EditPanel = ({ check, folders, pupils, onSave, onCancel }: EditPanelProps) => {
   const [form, setForm] = useState<EditForm>(() => ({
+    pass_fail: check.pass_fail ?? undefined,
     score: check.score != null ? String(check.score) : '',
     scoreMax: String(check.score_max ?? 5),
     comment: check.comment || '',
@@ -52,25 +53,40 @@ export const EditPanel = ({ check, folders, pupils, onSave, onCancel }: EditPane
         </div>
         <div>
           <label className="block text-xs font-medium text-slate-500 mb-1">Оценка</label>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              inputMode="decimal"
-              value={form.score}
-              onChange={(e) => setForm((f) => ({ ...f, score: e.target.value }))}
-              placeholder="0"
-              className="cursor-text w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-bold text-center focus:outline-none focus:border-indigo-400"
-            />
-            <span className="text-slate-400 text-sm shrink-0">из</span>
-            <input
-              type="text"
-              inputMode="decimal"
-              value={form.scoreMax}
-              onChange={(e) => setForm((f) => ({ ...f, scoreMax: e.target.value }))}
-              placeholder="5"
-              className="cursor-text w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-bold text-center focus:outline-none focus:border-indigo-400"
-            />
-          </div>
+          {check.pass_fail != null ? (
+            <select
+              value={form.pass_fail ?? check.pass_fail}
+              onChange={(e) => setForm((f) => ({ ...f, pass_fail: e.target.value }))}
+              className={`cursor-pointer w-full px-3 py-2 border-2 rounded-xl text-sm font-bold focus:outline-none transition-colors ${
+                (form.pass_fail ?? check.pass_fail) === 'зачёт'
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700 focus:border-emerald-400'
+                  : 'border-red-200 bg-red-50 text-red-700 focus:border-red-400'
+              }`}
+            >
+              <option value="зачёт">Зачёт</option>
+              <option value="незачёт">Незачёт</option>
+            </select>
+          ) : (
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                inputMode="decimal"
+                value={form.score}
+                onChange={(e) => setForm((f) => ({ ...f, score: e.target.value }))}
+                placeholder="0"
+                className="cursor-text w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-bold text-center focus:outline-none focus:border-indigo-400"
+              />
+              <span className="text-slate-400 text-sm shrink-0">из</span>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={form.scoreMax}
+                onChange={(e) => setForm((f) => ({ ...f, scoreMax: e.target.value }))}
+                placeholder="5"
+                className="cursor-text w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-bold text-center focus:outline-none focus:border-indigo-400"
+              />
+            </div>
+          )}
         </div>
       </div>
 

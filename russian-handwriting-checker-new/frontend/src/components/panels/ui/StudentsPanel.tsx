@@ -1,7 +1,14 @@
 import { useEffect, useState, useMemo } from 'react';
 import { User2, Loader2, ChevronDown, ChevronUp, Users, Search, X } from 'lucide-react';
 import api from '@/api';
-import type { CheckRecord, Folder, Group, Pupil, PctFilter, StudentsSortKey as SortKey } from '@/types';
+import type {
+  CheckRecord,
+  Folder,
+  Group,
+  Pupil,
+  PctFilter,
+  StudentsSortKey as SortKey,
+} from '@/types';
 import { formatDate, scoreColor } from '@/utils';
 import { ScoreBar, CheckMini, GroupSection } from '@/components/ui';
 
@@ -9,11 +16,13 @@ interface StudentStats {
   id: string;
   name: string;
   checks: CheckRecord[];
-  avgPct: number;
-  avgScore: number;
-  best: number;
-  worst: number;
+  avgPct: number | null;
+  avgScore: number | null;
+  best: number | null;
+  worst: number | null;
   lastDate: string;
+  passFails: number;
+  passFailPassed: number;
 }
 
 export const StudentsPanel = () => {
@@ -38,7 +47,7 @@ export const StudentsPanel = () => {
     Promise.all([
       api
         .get('/api/check/history')
-        .then((r) => r.data.map((c: CheckRecord) => ({ ...c, score_max: c.score_max ?? 5 }))),
+        .then((r) => r.data.map((c: CheckRecord) => ({ ...c, score_max: c.pass_fail != null ? null : (c.score_max ?? 5) }))),
       api
         .get('/api/groups/')
         .then((r) => r.data)
@@ -144,14 +153,15 @@ export const StudentsPanel = () => {
     map.forEach((cs, key) => {
       if (key === '\x00') return;
       const name = cs[0]?.pupil_name || key;
-      const scored = cs.filter((c) => c.score != null && c.score_max != null);
+      const scored = cs.filter((c) => c.pass_fail == null && c.score != null && c.score_max != null);
       const totalScore = scored.reduce((s, c) => s + (c.score ?? 0), 0);
       const totalMax = scored.reduce((s, c) => s + (c.score_max ?? 0), 0);
-      const avgPct = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : 0;
-      const avgScore = scored.length > 0 ? Math.round((totalScore / scored.length) * 10) / 10 : 0;
+      const avgPct = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : null;
+      const avgScore = scored.length > 0 ? Math.round((totalScore / scored.length) * 10) / 10 : null;
       const pcts = scored.map((c) =>
         c.score_max != null && c.score_max > 0 ? ((c.score ?? 0) / c.score_max) * 100 : 0,
       );
+      const pfChecks = cs.filter((c) => c.pass_fail != null);
       result.push({
         id: key,
         name,
@@ -162,12 +172,14 @@ export const StudentsPanel = () => {
         }),
         avgPct,
         avgScore,
-        best: pcts.length ? Math.round(Math.max(...pcts)) : 0,
-        worst: pcts.length ? Math.round(Math.min(...pcts)) : 0,
+        best: pcts.length ? Math.round(Math.max(...pcts)) : null,
+        worst: pcts.length ? Math.round(Math.min(...pcts)) : null,
         lastDate: cs.reduce((latest, c) => {
           const d = c.work_date || c.created_at;
           return d > latest ? d : latest;
         }, ''),
+        passFails: pfChecks.length,
+        passFailPassed: pfChecks.filter((c) => c.pass_fail === 'зачёт').length,
       });
     });
     return result;
@@ -184,14 +196,14 @@ export const StudentsPanel = () => {
       const q = search.toLowerCase().trim();
       result = result.filter((s) => s.name.toLowerCase().includes(q));
     }
-    if (pctFilter === 'low') result = result.filter((s) => s.avgPct < 50);
-    else if (pctFilter === 'mid') result = result.filter((s) => s.avgPct >= 50 && s.avgPct < 80);
-    else if (pctFilter === 'high') result = result.filter((s) => s.avgPct >= 80);
+    if (pctFilter === 'low') result = result.filter((s) => (s.avgPct ?? -1) < 50);
+    else if (pctFilter === 'mid') result = result.filter((s) => s.avgPct != null && s.avgPct >= 50 && s.avgPct < 80);
+    else if (pctFilter === 'high') result = result.filter((s) => (s.avgPct ?? -1) >= 80);
 
     return [...result].sort((a, b) => {
       if (sort === 'name_asc') return a.name.localeCompare(b.name, 'ru');
-      if (sort === 'pct_desc') return b.avgPct - a.avgPct;
-      if (sort === 'pct_asc') return a.avgPct - b.avgPct;
+      if (sort === 'pct_desc') return (b.avgPct ?? -1) - (a.avgPct ?? -1);
+      if (sort === 'pct_asc') return (a.avgPct ?? -1) - (b.avgPct ?? -1);
       if (sort === 'works_desc') return b.checks.length - a.checks.length;
       if (sort === 'date_desc') return b.lastDate.localeCompare(a.lastDate);
       return 0;
@@ -216,20 +228,17 @@ export const StudentsPanel = () => {
     else setSelectedNames(new Set(displayedStudents.map((s) => s.id)));
   };
 
-  const allPupils = useMemo<Pupil[]>(
-    () => {
-      const seen = new Set<string>();
-      const result: Pupil[] = [];
-      for (const c of checks) {
-        if (c.pupil_id && c.pupil_name && !seen.has(c.pupil_id)) {
-          seen.add(c.pupil_id);
-          result.push({ id: c.pupil_id, name: c.pupil_name });
-        }
+  const allPupils = useMemo<Pupil[]>(() => {
+    const seen = new Set<string>();
+    const result: Pupil[] = [];
+    for (const c of checks) {
+      if (c.pupil_id && c.pupil_name && !seen.has(c.pupil_id)) {
+        seen.add(c.pupil_id);
+        result.push({ id: c.pupil_id, name: c.pupil_name });
       }
-      return result.sort((a, b) => a.name.localeCompare(b.name, 'ru'));
-    },
-    [checks],
-  );
+    }
+    return result.sort((a, b) => a.name.localeCompare(b.name, 'ru'));
+  }, [checks]);
 
   const hasAnyStudents = checks.some((c) => c.pupil_id?.trim());
 
@@ -411,7 +420,7 @@ export const StudentsPanel = () => {
         </div>
         <div className="bg-white rounded-2xl border border-slate-200 px-4 py-3 text-center">
           <p className={`text-2xl font-bold ${scoreColor(overallAvg)}`}>{overallAvg}%</p>
-          <p className="text-xs text-slate-400 mt-0.5">Средний процент</p>
+          <p className="text-xs text-slate-400 mt-0.5">Процент успеваемости</p>
         </div>
       </div>
 
@@ -481,12 +490,19 @@ export const StudentsPanel = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline gap-2 flex-wrap mb-0.5">
                         <p className="font-semibold text-slate-800 text-sm">{student.name}</p>
-                        <span
-                          className={`text-sm font-bold tabular-nums ${scoreColor(student.avgPct)}`}
-                        >
-                          {student.avgScore.toFixed(1)}
-                        </span>
-                        <span className="text-xs text-slate-400">ср. балл</span>
+                        {student.avgScore != null && (
+                          <>
+                            <span className={`text-sm font-bold tabular-nums ${scoreColor(student.avgPct ?? 0)}`}>
+                              {student.avgScore.toFixed(1)}
+                            </span>
+                            <span className="text-xs text-slate-400">ср. балл</span>
+                          </>
+                        )}
+                        {student.passFails > 0 && (
+                          <span className={`text-sm font-bold tabular-nums ${student.passFailPassed === student.passFails ? 'text-emerald-600' : student.passFailPassed > 0 ? 'text-amber-600' : 'text-red-600'}`}>
+                            {student.passFailPassed}/{student.passFails} зач.
+                          </span>
+                        )}
                         {groupName && (
                           <span className="flex items-center gap-1 text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
                             <Users className="h-2.5 w-2.5" />
@@ -504,14 +520,14 @@ export const StudentsPanel = () => {
                         {' · '}последняя {formatDate(student.lastDate)}
                       </p>
                       <div className="mt-2 max-w-xs">
-                        <ScoreBar pct={student.avgPct} />
+                        <ScoreBar pct={student.avgPct ?? 0} />
                       </div>
                     </div>
 
                     <div className="flex flex-col items-end gap-1.5 shrink-0 ml-2">
                       <div className="flex items-center gap-3 text-xs">
-                        <span className="text-emerald-600 font-medium">▲ {student.best}%</span>
-                        <span className="text-red-500 font-medium">▼ {student.worst}%</span>
+                        {student.best != null && <span className="text-emerald-600 font-medium">▲ {student.best}%</span>}
+                        {student.worst != null && <span className="text-red-500 font-medium">▼ {student.worst}%</span>}
                       </div>
                       {isExpanded ? (
                         <ChevronUp className="h-4 w-4 text-slate-300" />

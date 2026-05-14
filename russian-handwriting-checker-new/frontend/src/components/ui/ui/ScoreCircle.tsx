@@ -1,4 +1,27 @@
-export const ScoreCircle = ({ score, max }: { score: number | null; max?: number | null }) => {
+export const ScoreCircle = ({
+  score,
+  max,
+  passFail,
+}: {
+  score: number | null;
+  max?: number | null;
+  passFail?: string | null;
+}) => {
+  if (passFail != null) {
+    const passed = passFail === 'зачёт';
+    return (
+      <div
+        title={passFail}
+        className={`w-12 h-12 rounded-xl border-2 flex items-center justify-center font-bold text-base shrink-0 ${
+          passed
+            ? 'text-emerald-600 bg-emerald-50 border-emerald-200'
+            : 'text-red-600 bg-red-50 border-red-200'
+        }`}
+      >
+        {passed ? 'З' : 'Н'}
+      </div>
+    );
+  }
   if (score == null) {
     return (
       <div className="w-12 h-12 rounded-xl border-2 border-slate-200 bg-slate-50 flex items-center justify-center text-slate-300 font-bold text-base shrink-0">

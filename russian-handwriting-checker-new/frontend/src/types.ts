@@ -28,17 +28,20 @@ export interface CheckRecord {
   title?: string | null;
   pupil_id?: string | null;
   pupil_name?: string | null;
+  pass_fail?: string | null;
   score: number | null;
   score_max: number | null;
   comment: string;
   corrected_text?: string;
   original_text?: string;
+  criteria?: Record<string, { score?: number; result?: string | number; max?: number; comment?: string }> | null;
   folder_id?: string | null;
   work_date?: string;
   created_at: string;
 }
 
 export interface EditForm {
+  pass_fail?: string;
   score: string;
   scoreMax: string;
   comment: string;
@@ -68,6 +71,8 @@ export interface Fn {
   is_default?: boolean;
   is_published?: boolean;
   original_function_id?: string | null;
+  score_max?: number | null;
+  min_words?: number | null;
 }
 
 export interface FnVersion {

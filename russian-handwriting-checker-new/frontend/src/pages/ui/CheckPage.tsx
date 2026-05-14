@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import type { CheckState } from '@/App';
 import { EmptyResult, StreamingPreview, TextEditor, UploadForm } from '@/components/ui';
 import { CheckPanel, ResultPanel } from '@/components/panels';
-import { BookOpen, X } from 'lucide-react';
+import { BookOpen, X, Info } from 'lucide-react';
+import type { Fn } from '@/types';
 
 interface CheckPageProps {
   state: CheckState;
@@ -12,7 +13,16 @@ interface CheckPageProps {
 export const CheckPage = ({ state, setState }: CheckPageProps) => {
   const [streamText, setStreamText] = useState('');
   const [showSource, setShowSource] = useState(false);
+  const [selectedFn, setSelectedFn] = useState<Fn | null>(null);
   const { editedText, sourceText, result, filename, functionId, rightState } = state;
+
+  const fnHint: string | null = (() => {
+    if (!selectedFn) return null;
+    const name = selectedFn.name.toLowerCase();
+    if (name.includes('полная работа огэ'))
+      return 'В поле «Текст работы» вставьте сначала изложение, затем — сочинение. Разделите их пустой строкой или пометкой «СОЧИНЕНИЕ:»';
+    return null;
+  })();
 
   useEffect(() => {
     if (rightState === 'streaming') {
@@ -107,6 +117,12 @@ export const CheckPage = ({ state, setState }: CheckPageProps) => {
           onChange={(v) => setState((prev) => ({ ...prev, editedText: v }))}
           filename={filename}
         />
+        {fnHint && (
+          <div className="flex items-start gap-2 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+            <Info className="h-4 w-4 mt-0.5 shrink-0 text-amber-500" />
+            <span>{fnHint}</span>
+          </div>
+        )}
         <CheckPanel
           text={editedText}
           sourceText={sourceText}
@@ -114,6 +130,7 @@ export const CheckPage = ({ state, setState }: CheckPageProps) => {
           onStreamChunk={handleStreamChunk}
           onStreamStart={handleStreamStart}
           onStreamCancel={handleStreamCancel}
+          onFunctionSelect={(fn) => setSelectedFn(fn)}
         />
       </div>
 
@@ -123,6 +140,7 @@ export const CheckPage = ({ state, setState }: CheckPageProps) => {
           <ResultPanel
             result={result}
             originalText={editedText}
+            sourceText={sourceText}
             filename={filename}
             functionId={functionId}
           />

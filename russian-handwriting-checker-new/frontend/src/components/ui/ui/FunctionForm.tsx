@@ -73,6 +73,47 @@ export const FunctionForm = ({
         </div>
       </div>
 
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-slate-600 mb-1">
+            Максимальный балл{' '}
+            <span className="text-slate-400 font-normal">(необязательно — по умолчанию 5)</span>
+          </label>
+          <input
+            type="number"
+            min={1}
+            value={form.score_max ?? ''}
+            onChange={(e) =>
+              setForm((f) => ({
+                ...f,
+                score_max: e.target.value ? Number(e.target.value) : null,
+              }))
+            }
+            placeholder="5"
+            className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-slate-600 mb-1">
+            Мин. количество слов{' '}
+            <span className="text-slate-400 font-normal">(необязательно)</span>
+          </label>
+          <input
+            type="number"
+            min={1}
+            value={form.min_words ?? ''}
+            onChange={(e) =>
+              setForm((f) => ({
+                ...f,
+                min_words: e.target.value ? Number(e.target.value) : null,
+              }))
+            }
+            placeholder="не задано"
+            className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400"
+          />
+        </div>
+      </div>
+
       <div>
         <div className="flex items-center justify-between mb-1">
           <label className="block text-xs font-medium text-slate-600">

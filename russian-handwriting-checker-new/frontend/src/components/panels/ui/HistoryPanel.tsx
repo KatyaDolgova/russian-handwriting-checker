@@ -46,7 +46,7 @@ export const HistoryPanel = () => {
     Promise.all([
       api
         .get('/api/check/history')
-        .then((r) => r.data.map((c: any) => ({ ...c, score_max: c.score_max ?? 5 }))),
+        .then((r) => r.data.map((c: any) => ({ ...c, score_max: c.pass_fail != null ? null : (c.score_max ?? 5) }))),
       api
         .get('/api/folders/')
         .then((r) => r.data)
@@ -76,13 +76,13 @@ export const HistoryPanel = () => {
   };
 
   const handleSaveEdit = async (id: string, form: EditForm) => {
-    const scoreIsEmpty = form.score.trim() === '';
-    const scoreNum = scoreIsEmpty ? null : parseFloat(form.score) || 0;
-    const maxNum = parseFloat(form.scoreMax) || 5;
+    const isPassFail = form.pass_fail !== undefined;
+    const scoreIsEmpty = !isPassFail && form.score.trim() === '';
+    const scoreNum = scoreIsEmpty || isPassFail ? null : parseFloat(form.score) || 0;
+    const maxNum = isPassFail ? null : parseFloat(form.scoreMax) || 5;
     const workDateIso = form.workDate ? new Date(form.workDate).toISOString() : undefined;
     await api.put(`/api/check/${id}`, {
-      score: scoreNum,
-      score_max: maxNum,
+      ...(isPassFail ? { pass_fail: form.pass_fail } : { score: scoreNum, score_max: maxNum }),
       comment: form.comment,
       corrected_text: form.corrected_text,
       pupil_id: form.pupil_id || null,
@@ -95,8 +95,9 @@ export const HistoryPanel = () => {
         c.id === id
           ? {
               ...c,
-              score: scoreIsEmpty ? c.score : scoreNum,
-              score_max: maxNum,
+              ...(isPassFail
+                ? { pass_fail: form.pass_fail }
+                : { score: scoreIsEmpty ? c.score : scoreNum, score_max: maxNum }),
               comment: form.comment,
               corrected_text: form.corrected_text,
               pupil_id: form.pupil_id || null,
@@ -179,11 +180,13 @@ export const HistoryPanel = () => {
   const stats = useMemo(() => {
     if (!filtered.length) return null;
     const students = new Set(filtered.map((c) => c.pupil_id).filter(Boolean)).size;
-    const scored = filtered.filter((c) => c.score != null && c.score_max != null);
+    const scored = filtered.filter((c) => c.pass_fail == null && c.score != null && c.score_max != null);
     const totalScore = scored.reduce((s, c) => s + (c.score ?? 0), 0);
     const totalMax = scored.reduce((s, c) => s + (c.score_max ?? 0), 0);
-    const avgPct = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : 0;
-    return { total: filtered.length, students, avgPct };
+    const avgPct = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : null;
+    const passFails = filtered.filter((c) => c.pass_fail != null);
+    const passFailPassed = passFails.filter((c) => c.pass_fail === 'зачёт').length;
+    return { total: filtered.length, students, avgPct, passFails: passFails.length, passFailPassed };
   }, [filtered]);
 
   const toggleSelect = (id: string) =>
@@ -285,7 +288,7 @@ export const HistoryPanel = () => {
       </div>
 
       {stats && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className={`grid gap-3 ${stats.passFails > 0 ? 'grid-cols-4' : 'grid-cols-3'}`}>
           <div className="bg-white rounded-2xl border border-slate-200 px-4 py-3 text-center">
             <p className="text-2xl font-bold text-slate-800">{stats.total}</p>
             <p className="text-xs text-slate-400 mt-0.5">Проверок</p>
@@ -295,13 +298,23 @@ export const HistoryPanel = () => {
             <p className="text-xs text-slate-400 mt-0.5">Учеников</p>
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 px-4 py-3 text-center">
-            <p
-              className={`text-2xl font-bold ${stats.avgPct >= 80 ? 'text-emerald-600' : stats.avgPct >= 50 ? 'text-amber-600' : 'text-red-600'}`}
-            >
-              {stats.avgPct}%
-            </p>
-            <p className="text-xs text-slate-400 mt-0.5">Средний процент правильных ответов</p>
+            {stats.avgPct != null ? (
+              <p className={`text-2xl font-bold ${stats.avgPct >= 80 ? 'text-emerald-600' : stats.avgPct >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+                {stats.avgPct}%
+              </p>
+            ) : (
+              <p className="text-2xl font-bold text-slate-300">—</p>
+            )}
+            <p className="text-xs text-slate-400 mt-0.5">Процент успеваемости</p>
           </div>
+          {stats.passFails > 0 && (
+            <div className="bg-white rounded-2xl border border-slate-200 px-4 py-3 text-center">
+              <p className={`text-2xl font-bold ${stats.passFailPassed === stats.passFails ? 'text-emerald-600' : stats.passFailPassed > 0 ? 'text-amber-600' : 'text-red-600'}`}>
+                {stats.passFailPassed}/{stats.passFails}
+              </p>
+              <p className="text-xs text-slate-400 mt-0.5">Зачётов</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -438,7 +451,7 @@ export const HistoryPanel = () => {
                     }}
                     className="cursor-pointer flex-1 flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors text-left"
                   >
-                    <ScoreCircle score={check.score} max={check.score_max} />
+                    <ScoreCircle score={check.score} max={check.score_max} passFail={check.pass_fail} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         {check.pupil_name && (
@@ -525,6 +538,37 @@ export const HistoryPanel = () => {
                     <div className="border-t border-slate-100 px-4 py-4 space-y-4">
                       {check.comment && (
                         <p className="text-sm text-slate-600 leading-relaxed">{check.comment}</p>
+                      )}
+                      {check.criteria && Object.keys(check.criteria).length > 0 && (
+                        <div>
+                          <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-2">
+                            Критерии
+                          </p>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {Object.entries(check.criteria).map(([key, val]) => (
+                              <div
+                                key={key}
+                                title={val.comment || undefined}
+                                className="flex items-start gap-2 bg-slate-50 rounded-lg px-3 py-1.5 text-xs cursor-default"
+                              >
+                                <span className="font-semibold text-slate-600 w-8 shrink-0 pt-0.5">
+                                  {key}
+                                </span>
+                                <span className="text-indigo-600 font-bold shrink-0 pt-0.5">
+                                  {val.score !== undefined ? val.score : val.result}
+                                </span>
+                                {val.max !== undefined && (
+                                  <span className="text-slate-300 shrink-0 pt-0.5">/{val.max}</span>
+                                )}
+                                {val.comment && (
+                                  <span className="text-slate-400 leading-tight">
+                                    {val.comment}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       )}
                       {check.original_text && (
                         <div>
