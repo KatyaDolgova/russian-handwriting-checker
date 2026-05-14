@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, Text, Boolean
+from sqlalchemy import Column, String, Text, Boolean, Integer
 from src.core.database import Base
 
 
@@ -15,3 +15,5 @@ class Function(Base):
     is_default = Column(Boolean, default=False)
     is_published = Column(Boolean, default=False)
     original_function_id = Column(String, nullable=True)
+    score_max = Column(Integer, nullable=True)
+    min_words = Column(Integer, nullable=True)

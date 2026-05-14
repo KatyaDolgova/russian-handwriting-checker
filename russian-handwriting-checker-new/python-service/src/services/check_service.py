@@ -12,39 +12,40 @@ class CheckService:
         self.function_repo = function_repo
 
     async def run_check(self, text: str, function_id: str) -> dict:
-        messages = await self._build_messages(text, function_id)
+        messages, func = await self._build_messages(text, function_id)
         raw = await self.llm.generate(messages)
         logger.info(f"LLM raw response length: {len(raw)}")
-        return self._build_result(text, self._parse(raw), raw)
+        return self._build_result(text, self._parse(raw), raw, getattr(func, "score_max", None), getattr(func, "min_words", None))
 
     async def stream_check(self, text: str, function_id: str) -> AsyncIterator[dict]:
-        messages = await self._build_messages(text, function_id)
+        messages, func = await self._build_messages(text, function_id)
+        fn_score_max = getattr(func, "score_max", None)
+        fn_min_words = getattr(func, "min_words", None)
         full_text = ""
         async for chunk in self.llm.stream(messages):
             full_text += chunk
             yield {"type": "chunk", "text": chunk}
-        result = self._build_result(text, self._parse(full_text), full_text)
+        result = self._build_result(text, self._parse(full_text), full_text, fn_score_max, fn_min_words)
         yield {"type": "done", "result": result}
 
-    async def _build_messages(self, text: str, function_id: str) -> list:
+    async def _build_messages(self, text: str, function_id: str):
         func = await self.function_repo.get(function_id)
         if not func:
             raise ValueError(f"Функция {function_id} не найдена")
         tmpl = (func.user_template or "").strip()
         if not tmpl:
-            # Шаблон пустой — отправляем текст напрямую или дефолтную команду
             user_content = text.strip() if text and text.strip() else "Выполни задание."
         elif "{text}" in tmpl:
             user_content = tmpl.replace("{text}", text)
         else:
-            # Шаблон есть, но без {text} — например, "Придумай тему для сочинения"
             user_content = tmpl
-        return [
+        messages = [
             {"role": "system", "content": func.system_prompt},
             {"role": "user", "content": user_content},
         ]
+        return messages, func
 
-    def _build_result(self, original_text: str, data: dict, raw_text: str = "") -> dict:
+    def _build_result(self, original_text: str, data: dict, raw_text: str = "", fn_score_max: int | None = None, fn_min_words: int | None = None) -> dict:
         is_generation = "corrected" not in data and "errors" not in data
         raw_score = data.get("score")
         if raw_score is None:
@@ -61,6 +62,8 @@ class CheckService:
             "corrected_text": corrected,
             "errors": errors,
             "score": score,
+            "score_max": fn_score_max,
+            "min_words": fn_min_words,
             "score_label": str(raw_score) if raw_score is not None and not isinstance(raw_score, (int, float)) else None,
             "criteria": data.get("criteria"),
             "comment": data.get("comment", ""),

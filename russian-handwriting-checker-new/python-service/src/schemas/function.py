@@ -8,6 +8,8 @@ class FunctionCreate(BaseModel):
     description: str
     system_prompt: str
     user_template: str
+    score_max: Optional[int] = None
+    min_words: Optional[int] = None
 
 
 class FunctionOut(FunctionCreate):
@@ -16,6 +18,8 @@ class FunctionOut(FunctionCreate):
     is_default: bool = False
     is_published: bool = False
     original_function_id: Optional[str] = None
+    score_max: Optional[int] = None
+    min_words: Optional[int] = None
 
 
 class GalleryFunctionOut(BaseModel):

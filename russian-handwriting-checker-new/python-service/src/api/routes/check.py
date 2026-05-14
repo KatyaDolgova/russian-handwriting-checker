@@ -53,9 +53,12 @@ async def save(
     obj = await repo.create({
         "filename": request.filename,
         "title": request.title,
+        "source_text": request.source_text,
         "original_text": request.original_text,
         "corrected_text": request.corrected_text,
         "errors": request.errors,
+        "criteria": request.criteria,
+        "pass_fail": request.pass_fail,
         "score": request.score,
         "score_max": request.score_max,
         "comment": request.comment,

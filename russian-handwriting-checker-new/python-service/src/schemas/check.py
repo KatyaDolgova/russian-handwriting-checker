@@ -11,9 +11,12 @@ class CheckRequest(BaseModel):
 class SaveCheckRequest(BaseModel):
     filename: str
     title: Optional[str] = None
+    source_text: Optional[str] = None
     original_text: str
     corrected_text: str
     errors: Optional[List[dict]] = []
+    criteria: Optional[dict] = None
+    pass_fail: Optional[str] = None
     score: Optional[float] = None
     score_max: Optional[float] = None
     comment: str
@@ -24,6 +27,7 @@ class SaveCheckRequest(BaseModel):
 
 
 class UpdateCheckRequest(BaseModel):
+    pass_fail: Optional[str] = None
     score: Optional[float] = None
     score_max: Optional[float] = None
     comment: Optional[str] = None
