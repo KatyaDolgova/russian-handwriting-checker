@@ -23,7 +23,7 @@ export const ScoreBadge = ({ score, label, max }: ScoreBadgeProps) => {
   if (s == null || isNaN(s)) {
     return (
       <div className="inline-flex items-center px-4 py-2 rounded-2xl border border-slate-200 bg-slate-50 text-slate-400 font-bold text-2xl">
-        —
+        -
       </div>
     );
   }

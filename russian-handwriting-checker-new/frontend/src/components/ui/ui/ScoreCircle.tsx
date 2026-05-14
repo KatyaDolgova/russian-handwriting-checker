@@ -25,7 +25,7 @@ export const ScoreCircle = ({
   if (score == null) {
     return (
       <div className="w-12 h-12 rounded-xl border-2 border-slate-200 bg-slate-50 flex items-center justify-center text-slate-300 font-bold text-base shrink-0">
-        —
+        -
       </div>
     );
   }

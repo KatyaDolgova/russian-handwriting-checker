@@ -3,7 +3,7 @@ import numpy as np
 
 
 def _imread_unicode(image_path: str) -> np.ndarray:
-    """cv2.imread не поддерживает кириллицу в путях на Windows — читаем через np.fromfile."""
+    """cv2.imread не поддерживает кириллицу в путях на Windows - читаем через np.fromfile."""
     buf = np.fromfile(image_path, dtype=np.uint8)
     img = cv2.imdecode(buf, cv2.IMREAD_COLOR)
     if img is None:

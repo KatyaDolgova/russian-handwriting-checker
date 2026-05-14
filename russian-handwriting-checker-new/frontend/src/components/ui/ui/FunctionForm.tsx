@@ -3,7 +3,7 @@ import { useToast } from '@/components/ui/ui/Toast';
 import { FileCode, X, Loader2 } from 'lucide-react';
 import type { Fn } from '@/types';
 
-const PROMPT_TEMPLATE = `Ты — опытный учитель русского языка. [Опиши своё задание здесь]
+const PROMPT_TEMPLATE = `Ты - опытный учитель русского языка. [Опиши своё задание здесь]
 
 Верни ответ СТРОГО в формате JSON (без лишнего текста вокруг):
 {
@@ -16,7 +16,7 @@ const PROMPT_TEMPLATE = `Ты — опытный учитель русского
       "comment": "<краткое пояснение>"
     }
   ],
-  "score": <число от 0 до 5, где 5 — отлично>,
+  "score": <число от 0 до 5, где 5 - отлично>,
   "comment": "<общий комментарий учителя>"
 }`;
 
@@ -77,7 +77,7 @@ export const FunctionForm = ({
         <div>
           <label className="block text-xs font-medium text-slate-600 mb-1">
             Максимальный балл{' '}
-            <span className="text-slate-400 font-normal">(необязательно — по умолчанию 5)</span>
+            <span className="text-slate-400 font-normal">(необязательно - по умолчанию 5)</span>
           </label>
           <input
             type="number"
@@ -95,8 +95,7 @@ export const FunctionForm = ({
         </div>
         <div>
           <label className="block text-xs font-medium text-slate-600 mb-1">
-            Мин. количество слов{' '}
-            <span className="text-slate-400 font-normal">(необязательно)</span>
+            Мин. количество слов <span className="text-slate-400 font-normal">(необязательно)</span>
           </label>
           <input
             type="number"
@@ -131,7 +130,7 @@ export const FunctionForm = ({
         <textarea
           {...field('system_prompt')}
           rows={8}
-          placeholder="Ты — опытный учитель русского языка. Проверь текст и верни результат в формате JSON..."
+          placeholder="Ты - опытный учитель русского языка. Проверь текст и верни результат в формате JSON..."
           className="cursor-text w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-mono resize-y focus:outline-none focus:border-indigo-400"
         />
       </div>
@@ -141,7 +140,7 @@ export const FunctionForm = ({
           <label className="block text-xs font-medium text-slate-600">
             Шаблон запроса{' '}
             <span className="text-slate-400 font-normal">
-              (необязательно — используй{' '}
+              (необязательно - используй{' '}
               <code className="bg-slate-100 px-1 rounded">{'{text}'}</code> для подстановки текста;
               оставь пустым, если текст не нужен)
             </span>

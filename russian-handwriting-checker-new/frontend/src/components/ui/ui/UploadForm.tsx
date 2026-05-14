@@ -112,7 +112,7 @@ export const UploadForm = ({ onSuccess }: UploadFormProps) => {
             <p className="text-slate-700 font-medium mb-1">
               {isDragging ? 'Отпустите файл' : 'Перетащите файл или нажмите'}
             </p>
-            <p className="text-slate-400 text-sm">JPG, PNG, PDF, DOCX — до 50 МБ</p>
+            <p className="text-slate-400 text-sm">JPG, PNG, PDF, DOCX - до 50 МБ</p>
           </>
         ) : (
           <div>

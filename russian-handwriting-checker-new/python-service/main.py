@@ -5,7 +5,7 @@ from src.api.routes import upload, check, functions, auth, folders, groups, pupi
 from sqlalchemy import text
 from src.core.database import engine, Base
 from src.core.seed_functions import seed_default_functions
-import src.models.folder           # noqa: F401 — register with Base.metadata
+import src.models.folder           # noqa: F401 - register with Base.metadata
 import src.models.group            # noqa: F401
 import src.models.user_profile     # noqa: F401
 import src.models.pupil            # noqa: F401

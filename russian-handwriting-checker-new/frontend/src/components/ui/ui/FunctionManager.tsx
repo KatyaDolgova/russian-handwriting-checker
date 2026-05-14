@@ -154,7 +154,7 @@ export const FunctionManager = () => {
       <div>
         <SectionHeader title="Стандартные функции" count={defaultFns.length} />
         <p className="text-xs text-slate-400 mb-3">
-          Встроенные шаблоны — доступны всем пользователям, нельзя изменить или удалить.
+          Встроенные шаблоны - доступны всем пользователям, нельзя изменить или удалить.
         </p>
         <div className="space-y-2">
           {defaultFns.map((fn) => (

@@ -1,4 +1,4 @@
-"""Генератор презентации дипломного проекта «РусЯзык AI» — 20 слайдов"""
+"""Генератор презентации дипломного проекта «РусЯзык AI» - 20 слайдов"""
 
 from pptx import Presentation
 from pptx.util import Inches, Pt, Cm
@@ -216,7 +216,7 @@ def s02_problem(prs):
     box(sl, Inches(0.5), Inches(1.3), Inches(12.3), Inches(0.95), INDIGO_L)
     tb(sl, Inches(0.75), Inches(1.42), Inches(11.8), Inches(0.72),
        "Учитель русского языка тратит 10–15 минут на проверку одной работы.\n"
-       "При классе из 30 учеников — это 5–7 часов только на одну волну работ.",
+       "При классе из 30 учеников - это 5–7 часов только на одну волну работ.",
        sz=17, bold=True, color=INDIGO)
 
     problems = [
@@ -340,9 +340,9 @@ def s05_features(prs):
         subtitle="Полный набор инструментов учителя в одном месте")
 
     feats = [
-        ("📤", "Загрузка файлов",         "Фото, PDF, DOCX, PPTX, TXT —\nлюбой формат"),
+        ("📤", "Загрузка файлов",         "Фото, PDF, DOCX, PPTX, TXT -\nлюбой формат"),
         ("✍️",  "Редактор текста",          "Tiptap: отредактировать\nраспознанный текст"),
-        ("🤖", "ИИ-проверка",              "Стриминг результата —\nпоявляется в реальном времени"),
+        ("🤖", "ИИ-проверка",              "Стриминг результата -\nпоявляется в реальном времени"),
         ("💾", "Сохранение работ",         "Привязка к ученику, папке,\nдате и оценке"),
         ("👨‍🎓", "База учеников",            "Список, группы, статистика\nпо каждому ученику"),
         ("⚙️",  "Функции проверки",         "Создать, опубликовать\nв галерею, копировать"),
@@ -441,7 +441,7 @@ def s07_architecture(prs):
         (TEAL,   "SERVICES\n(Бизнес-логика)",
          ["• CheckService",
           "  промпт + парсинг JSON",
-          "• LLMService — стриминг",
+          "• LLMService - стриминг",
           "• DocumentConverter",
           "  OCR или MarkItDown",
           "• HybridOCR",
@@ -522,7 +522,7 @@ def s08_ocr_pipeline(prs):
     sl = blank_slide(prs)
     fill_bg(sl, SLIDE_BG)
     hdr(sl, "Обработка файлов: алгоритм DocumentConverter",
-        subtitle="Два пути + fallback — единый интерфейс для любого формата")
+        subtitle="Два пути + fallback - единый интерфейс для любого формата")
 
     # Входной файл
     box(sl, Inches(0.5), Inches(1.5), Inches(2.4), Inches(0.82), INDIGO)
@@ -540,7 +540,7 @@ def s08_ocr_pipeline(prs):
     tb(sl, Inches(2.95), Inches(2.88), Inches(0.3), Inches(0.42),
        "→", sz=20, bold=True, color=GRAY, align=PP_ALIGN.CENTER)
 
-    # ПУТЬ 1 — изображение
+    # ПУТЬ 1 - изображение
     y1 = Inches(1.5)
     box(sl, Inches(3.4), y1, Inches(3.8), Inches(0.72), INDIGO_L)
     tb(sl, Inches(3.55), y1 + Inches(0.1), Inches(3.6), Inches(0.55),
@@ -572,7 +572,7 @@ def s08_ocr_pipeline(prs):
        "score = 0.7×conf + 0.3×text_quality → лучший",
        sz=10, color=GREEN, italic=True)
 
-    # ПУТЬ 2 — документы
+    # ПУТЬ 2 - документы
     y2 = Inches(1.5)
     box(sl, Inches(7.55), y2, Inches(4.2), Inches(0.72), INDIGO_L)
     tb(sl, Inches(7.7), y2 + Inches(0.1), Inches(4.0), Inches(0.55),
@@ -615,7 +615,7 @@ def s09_streaming(prs):
     sl = blank_slide(prs)
     fill_bg(sl, SLIDE_BG)
     hdr(sl, "Стриминг ответа ИИ в реальном времени",
-        subtitle="Server-Sent Events (SSE) — пользователь видит каждый токен сразу")
+        subtitle="Server-Sent Events (SSE) - пользователь видит каждый токен сразу")
 
     steps = [
         (INDIGO,  "1",  "Нажата\nкнопка",
@@ -665,7 +665,7 @@ def s10_upload_algo(prs):
     sl = blank_slide(prs)
     fill_bg(sl, SLIDE_BG)
     hdr(sl, "Алгоритм загрузки и обработки файла",
-        subtitle="BackgroundTasks FastAPI + polling — клиент не ждёт OCR блокируя соединение")
+        subtitle="BackgroundTasks FastAPI + polling - клиент не ждёт OCR блокируя соединение")
 
     steps6 = [
         (INDIGO,  "1", "Пользователь\nвыбирает файл",
@@ -743,7 +743,7 @@ def s11_check_service(prs):
     # Поля результата
     box(sl, Inches(0.5), Inches(2.65), Inches(12.3), Inches(0.38), DARK)
     tb(sl, Inches(0.75), Inches(2.72), Inches(11.8), Inches(0.28),
-       "_build_result() — что входит в итоговый ответ:", sz=13, bold=True, color=WHITE)
+       "_build_result() - что входит в итоговый ответ:", sz=13, bold=True, color=WHITE)
 
     fields = [
         ("corrected_text",   "Исправленный текст",             INDIGO_L,   INDIGO),
@@ -789,7 +789,7 @@ def s12_functions(prs):
     sl = blank_slide(prs)
     fill_bg(sl, SLIDE_BG)
     hdr(sl, "Функции проверки: создание, публикация, галерея",
-        subtitle="Каждая функция — это system_prompt + user_template с плейсхолдером {text}")
+        subtitle="Каждая функция - это system_prompt + user_template с плейсхолдером {text}")
 
     # Жизненный цикл функции
     lifecycle = [
@@ -828,7 +828,7 @@ def s12_functions(prs):
     # Пример промпта
     code_block(sl, Inches(6.5), Inches(5.1), Inches(6.7), Inches(2.15),
         '# Пример: Проверка орфографии\n'
-        'system_prompt: "Ты — учитель русского языка.\n'
+        'system_prompt: "Ты - учитель русского языка.\n'
         '  Верни JSON: {corrected, errors:[{original,\n'
         '  corrected, type, comment}], score, comment}"\n\n'
         'user_template: "Проверь следующий текст:\\n\\n{text}"')
@@ -852,14 +852,14 @@ def s13_frontend(prs):
     box(sl, Inches(0.5), Inches(1.42), Inches(3.9), Inches(5.8), INDIGO_LL)
     box(sl, Inches(0.5), Inches(1.42), Pt(5), Inches(5.8), INDIGO)
     tb(sl, Inches(0.68), Inches(1.5), Inches(3.6), Inches(0.38),
-       "React Router DOM — маршруты", sz=13, bold=True, color=INDIGO)
+       "React Router DOM - маршруты", sz=13, bold=True, color=INDIGO)
     for i, (route, comp, desc) in enumerate(pages):
         y = Inches(1.98) + i * Inches(1.0)
         box(sl, Inches(0.6), y, Inches(3.7), Inches(0.88), WHITE)
         tb(sl, Inches(0.75), y + Inches(0.05), Inches(3.4), Inches(0.32),
            route, sz=12, bold=True, color=INDIGO)
         tb(sl, Inches(0.75), y + Inches(0.38), Inches(3.4), Inches(0.32),
-           f"{comp}  —  {desc}", sz=11, color=GRAY)
+           f"{comp}  -  {desc}", sz=11, color=GRAY)
 
     # Компоненты CheckPage
     comps = [
@@ -871,7 +871,7 @@ def s13_frontend(prs):
     ]
     box(sl, Inches(4.65), Inches(1.42), Inches(8.2), Inches(0.38), TEAL)
     tb(sl, Inches(4.8), Inches(1.47), Inches(8.0), Inches(0.3),
-       "CheckPage — компоненты главной страницы", sz=12, bold=True, color=WHITE)
+       "CheckPage - компоненты главной страницы", sz=12, bold=True, color=WHITE)
 
     cw = Inches(1.52)
     ch = Inches(1.65)
@@ -895,13 +895,13 @@ def s13_frontend(prs):
          "JWT-токен хранится в localStorage.\n"
          "Axios-перехватчик автоматически добавляет\n"
          "Authorization: Bearer <token> к каждому запросу.",
-         "При 401 — выход из системы."],
+         "При 401 - выход из системы."],
         sz=12, color=DARK)
 
     # TypeScript типы
     box(sl, Inches(4.65), Inches(5.42), Inches(8.2), Inches(1.82), NEAR_BLACK)
     tb(sl, Inches(4.82), Inches(5.52), Inches(8.0), Inches(1.65),
-       "// types.ts — все API-ответы строго типизированы\n"
+       "// types.ts - все API-ответы строго типизированы\n"
        "interface CheckRecord { id: string; score: number | null;\n"
        "  errors: ...; corrected_text?: string; ... }\n"
        "interface Fn { id: string; name: string; system_prompt?: string; ... }\n"
@@ -914,7 +914,7 @@ def s14_auth(prs):
     sl = blank_slide(prs)
     fill_bg(sl, SLIDE_BG)
     hdr(sl, "Авторизация: Supabase Auth + JWT",
-        subtitle="Токен валидируется на бэкенде через supabase.auth.get_user() — без ручного decode")
+        subtitle="Токен валидируется на бэкенде через supabase.auth.get_user() - без ручного decode")
 
     flow = [
         (INDIGO,  "Регистрация /\nВход",       "POST /api/auth/register\nили /login"),
@@ -949,7 +949,7 @@ def s14_auth(prs):
 
     # Axios interceptor
     code_block(sl, Inches(6.7), Inches(4.2), Inches(6.1), Inches(3.05),
-        "// api.ts — единственное место с токеном\n"
+        "// api.ts - единственное место с токеном\n"
         "const api = axios.create({ baseURL: BASE_URL });\n\n"
         "api.interceptors.request.use((config) => {\n"
         "  const token = localStorage\n"
@@ -1009,9 +1009,9 @@ def s15_db(prs):
     # JSON поле
     box(sl, Inches(0.5), Inches(5.6), Inches(12.3), Inches(0.82), INDIGO_LL)
     tb(sl, Inches(0.75), Inches(5.7), Inches(11.8), Inches(0.65),
-       "💡  checks.errors — JSON-колонка: хранит Python-список объектов ошибок напрямую. "
+       "💡  checks.errors - JSON-колонка: хранит Python-список объектов ошибок напрямую. "
        "SQLAlchemy автоматически\nсериализует/десериализует. "
-       "Нет JOIN — все данные проверки читаются одним запросом.",
+       "Нет JOIN - все данные проверки читаются одним запросом.",
        sz=12, color=INDIGO)
 
     num(sl, 15)
@@ -1029,10 +1029,10 @@ def s16_tech_stack(prs):
         (VIOLET,  "PaddleOCR 2.8.1", "OCR",          "Наивысшая точность для рукописи, модель SVTR + детектор DB"),
         (VIOLET,  "Tesseract 5.x",   "OCR резерв",   "Компенсирует слабость PaddleOCR на печатном тексте"),
         (AMBER,   "MarkItDown",       "Документы",    "Единый API для PDF/DOCX/PPTX/TXT от Microsoft, сохраняет структуру"),
-        (AMBER,   "Ollama qwen2.5:7b","LLM",         "Локальный запуск — данные не утекают; 7B оптимален на CPU"),
+        (AMBER,   "Ollama qwen2.5:7b","LLM",         "Локальный запуск - данные не утекают; 7B оптимален на CPU"),
         (GREEN,   "React 19",         "Фронтенд",     "Стандарт отрасли, компонентный подход, наибольшая экосистема"),
         (GREEN,   "TypeScript ~6",    "Типизация",    "Обнаруживает ошибки типов на этапе сборки, улучшает IDE"),
-        (RED,     "Vite 8",           "Сборщик",      "Мгновенный старт через ES-модули, Rolldown на Rust — быстрее Webpack"),
+        (RED,     "Vite 8",           "Сборщик",      "Мгновенный старт через ES-модули, Rolldown на Rust - быстрее Webpack"),
         (RED,     "Tailwind CSS v4",  "Стили",        "Utility-first: стили прямо в JSX, v4 через Vite-плагин без конфига"),
     ]
 
@@ -1080,8 +1080,8 @@ def s17_patterns(prs):
     pats = [
         (INDIGO, "Стратегия (Strategy)",
          "ЗАЧЕМ:\nЛегко добавить новый OCR-движок\nбез изменения существующего кода\n\n"
-         "КАК:\nOCRStrategy — абстрактный класс\nPaddleStrategy, TesseractStrategy — реализации\n"
-         "HybridOCR — агрегирует обе (◆)",
+         "КАК:\nOCRStrategy - абстрактный класс\nPaddleStrategy, TesseractStrategy - реализации\n"
+         "HybridOCR - агрегирует обе (◆)",
          "class OCRStrategy(ABC):\n"
          "  @abstractmethod\n"
          "  def recognize(self,\n"
@@ -1166,8 +1166,8 @@ def s18_usecase_classdiag(prs):
        sz=13, italic=True, color=GRAY, align=PP_ALIGN.CENTER)
 
     key_pts = [
-        "OCRStrategy — абстрактный класс (контракт)",
-        "PaddleStrategy, TesseractStrategy — реализации",
+        "OCRStrategy - абстрактный класс (контракт)",
+        "PaddleStrategy, TesseractStrategy - реализации",
         "HybridOCR ◆→ OCRStrategy (композиция)",
         "CheckService → LLMService, FunctionRepo",
     ]

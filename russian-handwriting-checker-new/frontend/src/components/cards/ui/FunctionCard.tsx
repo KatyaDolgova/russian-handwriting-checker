@@ -61,16 +61,19 @@ export const FunctionCard = ({
   const [versionNote, setVersionNote] = useState('');
   const [showVersionInput, setShowVersionInput] = useState(false);
 
-  const loadVersions = useCallback(async (force = false) => {
-    if (versions.length > 0 && !force) return;
-    setVersionsLoading(true);
-    try {
-      const r = await api.get(`/api/functions/${fn.id}/versions`);
-      setVersions(r.data);
-    } finally {
-      setVersionsLoading(false);
-    }
-  }, [fn.id, versions.length]);
+  const loadVersions = useCallback(
+    async (force = false) => {
+      if (versions.length > 0 && !force) return;
+      setVersionsLoading(true);
+      try {
+        const r = await api.get(`/api/functions/${fn.id}/versions`);
+        setVersions(r.data);
+      } finally {
+        setVersionsLoading(false);
+      }
+    },
+    [fn.id, versions.length],
+  );
 
   const handleToggleVersions = () => {
     if (!showVersions) loadVersions();
@@ -259,7 +262,7 @@ export const FunctionCard = ({
                 </div>
               ) : (
                 <p className="text-xs text-slate-400 italic">
-                  Шаблон не задан — функция принимает произвольный текст
+                  Шаблон не задан - функция принимает произвольный текст
                 </p>
               )}
 
@@ -310,7 +313,10 @@ export const FunctionCard = ({
                         {savingVersion ? '...' : 'Сохранить'}
                       </button>
                       <button
-                        onClick={() => { setShowVersionInput(false); setVersionNote(''); }}
+                        onClick={() => {
+                          setShowVersionInput(false);
+                          setVersionNote('');
+                        }}
                         className="cursor-pointer text-xs text-slate-400 hover:text-slate-600 transition-colors px-1"
                       >
                         Отмена

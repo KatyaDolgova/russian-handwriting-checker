@@ -13,7 +13,14 @@ import {
   FolderClosed,
 } from 'lucide-react';
 import api from '@/api';
-import { useToast, ScoreCircle, CopyBtn, ConfirmDelete, FolderSection, HighlightedText } from '@/components/ui';
+import {
+  useToast,
+  ScoreCircle,
+  CopyBtn,
+  ConfirmDelete,
+  FolderSection,
+  HighlightedText,
+} from '@/components/ui';
 import { formatDate } from '@/utils';
 import type { Folder, DateFilter, SortKey, CheckRecord, EditForm, Pupil } from '@/types';
 import { EditPanel } from '@/components/panels';
@@ -46,7 +53,12 @@ export const HistoryPanel = () => {
     Promise.all([
       api
         .get('/api/check/history')
-        .then((r) => r.data.map((c: any) => ({ ...c, score_max: c.pass_fail != null ? null : (c.score_max ?? 5) }))),
+        .then((r) =>
+          r.data.map((c: any) => ({
+            ...c,
+            score_max: c.pass_fail != null ? null : (c.score_max ?? 5),
+          })),
+        ),
       api
         .get('/api/folders/')
         .then((r) => r.data)
@@ -180,13 +192,21 @@ export const HistoryPanel = () => {
   const stats = useMemo(() => {
     if (!filtered.length) return null;
     const students = new Set(filtered.map((c) => c.pupil_id).filter(Boolean)).size;
-    const scored = filtered.filter((c) => c.pass_fail == null && c.score != null && c.score_max != null);
+    const scored = filtered.filter(
+      (c) => c.pass_fail == null && c.score != null && c.score_max != null,
+    );
     const totalScore = scored.reduce((s, c) => s + (c.score ?? 0), 0);
     const totalMax = scored.reduce((s, c) => s + (c.score_max ?? 0), 0);
     const avgPct = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : null;
     const passFails = filtered.filter((c) => c.pass_fail != null);
     const passFailPassed = passFails.filter((c) => c.pass_fail === 'зачёт').length;
-    return { total: filtered.length, students, avgPct, passFails: passFails.length, passFailPassed };
+    return {
+      total: filtered.length,
+      students,
+      avgPct,
+      passFails: passFails.length,
+      passFailPassed,
+    };
   }, [filtered]);
 
   const toggleSelect = (id: string) =>
@@ -299,17 +319,21 @@ export const HistoryPanel = () => {
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 px-4 py-3 text-center">
             {stats.avgPct != null ? (
-              <p className={`text-2xl font-bold ${stats.avgPct >= 80 ? 'text-emerald-600' : stats.avgPct >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+              <p
+                className={`text-2xl font-bold ${stats.avgPct >= 80 ? 'text-emerald-600' : stats.avgPct >= 50 ? 'text-amber-600' : 'text-red-600'}`}
+              >
                 {stats.avgPct}%
               </p>
             ) : (
-              <p className="text-2xl font-bold text-slate-300">—</p>
+              <p className="text-2xl font-bold text-slate-300">-</p>
             )}
             <p className="text-xs text-slate-400 mt-0.5">Процент успеваемости</p>
           </div>
           {stats.passFails > 0 && (
             <div className="bg-white rounded-2xl border border-slate-200 px-4 py-3 text-center">
-              <p className={`text-2xl font-bold ${stats.passFailPassed === stats.passFails ? 'text-emerald-600' : stats.passFailPassed > 0 ? 'text-amber-600' : 'text-red-600'}`}>
+              <p
+                className={`text-2xl font-bold ${stats.passFailPassed === stats.passFails ? 'text-emerald-600' : stats.passFailPassed > 0 ? 'text-amber-600' : 'text-red-600'}`}
+              >
                 {stats.passFailPassed}/{stats.passFails}
               </p>
               <p className="text-xs text-slate-400 mt-0.5">Зачётов</p>
@@ -349,7 +373,7 @@ export const HistoryPanel = () => {
               onChange={(e) => setFromDate(e.target.value)}
               className="cursor-pointer text-sm border border-slate-200 bg-white rounded-xl px-3 py-2 text-slate-600 focus:outline-none focus:border-indigo-400"
             />
-            <span className="text-xs text-slate-400">—</span>
+            <span className="text-xs text-slate-400">-</span>
             <input
               type="date"
               value={toDate}
@@ -451,7 +475,11 @@ export const HistoryPanel = () => {
                     }}
                     className="cursor-pointer flex-1 flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors text-left"
                   >
-                    <ScoreCircle score={check.score} max={check.score_max} passFail={check.pass_fail} />
+                    <ScoreCircle
+                      score={check.score}
+                      max={check.score_max}
+                      passFail={check.pass_fail}
+                    />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         {check.pupil_name && (

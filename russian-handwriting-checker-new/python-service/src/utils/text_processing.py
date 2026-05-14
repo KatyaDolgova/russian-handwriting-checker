@@ -2,7 +2,7 @@ import re
 
 def clean_text(text: str) -> str:
     """Очищает текст, оставляя только нужные символы"""
-    allowed = r'А-Яа-яЁёA-Za-z0-9\s\.\,\!\?\;\:\"\'\-–—'
+    allowed = r'А-Яа-яЁёA-Za-z0-9\s\.\,\!\?\;\:\"\'\-–-'
     return re.sub(rf'[^{allowed}]', '', text).strip()
 
 def fix_russian_handwriting(text: str) -> str:

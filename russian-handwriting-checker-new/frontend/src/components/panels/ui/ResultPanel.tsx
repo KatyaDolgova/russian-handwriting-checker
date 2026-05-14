@@ -17,7 +17,7 @@ import type { Folder, Pupil } from '@/types';
 
 const CommentBlock = ({ text }: { text: string }) => {
   const [expanded, setExpanded] = useState(false);
-  if (!text) return <p className="text-slate-400 text-sm">—</p>;
+  if (!text) return <p className="text-slate-400 text-sm">-</p>;
   const isLong = text.length > 180;
   return (
     <div>
@@ -44,7 +44,13 @@ interface ResultPanelProps {
   functionId: string;
 }
 
-export const ResultPanel = ({ result, originalText, sourceText = '', filename, functionId }: ResultPanelProps) => {
+export const ResultPanel = ({
+  result,
+  originalText,
+  sourceText = '',
+  filename,
+  functionId,
+}: ResultPanelProps) => {
   const { user } = useAuth();
   const toast = useToast();
   const [editedCorrected, setEditedCorrected] = useState(result.corrected_text || '');
@@ -54,17 +60,24 @@ export const ResultPanel = ({ result, originalText, sourceText = '', filename, f
     if (typeof result.score === 'string') return result.score.toLowerCase();
     // Критерии только с result (зачёт/незачёт) без числовых баллов
     const crit = result.criteria as Record<string, any> | null | undefined;
-    if (crit && Object.values(crit).every((v: any) => v.result !== undefined && v.score === undefined)) {
-      return (Object.values(crit) as any[]).every((v) => v.result === 'зачёт') ? 'зачёт' : 'незачёт';
+    if (
+      crit &&
+      Object.values(crit).every((v: any) => v.result !== undefined && v.score === undefined)
+    ) {
+      return (Object.values(crit) as any[]).every((v) => v.result === 'зачёт')
+        ? 'зачёт'
+        : 'незачёт';
     }
     if (result.score == null) return '';
-    // Числовые критерии — считаем сумму
+    // Числовые критерии - считаем сумму
     if (crit) {
       const vals = Object.values(crit);
       const hasNumeric = vals.some((v: any) => typeof v.score === 'number');
       if (hasNumeric) {
-        const total = vals.reduce((sum: number, v: any) =>
-          sum + (typeof v.score === 'number' ? v.score : 0), 0);
+        const total = vals.reduce(
+          (sum: number, v: any) => sum + (typeof v.score === 'number' ? v.score : 0),
+          0,
+        );
         return String(total);
       }
     }
@@ -123,8 +136,11 @@ export const ResultPanel = ({ result, originalText, sourceText = '', filename, f
   const passFail: string | null =
     typeof result.score === 'string' && ['зачёт', 'незачёт'].includes(result.score.toLowerCase())
       ? result.score.toLowerCase()
-      : criteria && Object.values(criteria).every((v: any) => v.result !== undefined && v.score === undefined)
-        ? (Object.values(criteria) as any[]).every((v) => v.result === 'зачёт') ? 'зачёт' : 'незачёт'
+      : criteria &&
+          Object.values(criteria).every((v: any) => v.result !== undefined && v.score === undefined)
+        ? (Object.values(criteria) as any[]).every((v) => v.result === 'зачёт')
+          ? 'зачёт'
+          : 'незачёт'
         : null;
 
   const handleSave = async () => {
@@ -136,9 +152,7 @@ export const ResultPanel = ({ result, originalText, sourceText = '', filename, f
       if (!resolvedPupilId && pupilName.trim()) {
         const res = await api.post('/api/pupils/', { name: pupilName.trim() });
         resolvedPupilId = res.data.id;
-        setPupils((prev) =>
-          prev.find((p) => p.id === res.data.id) ? prev : [...prev, res.data],
-        );
+        setPupils((prev) => (prev.find((p) => p.id === res.data.id) ? prev : [...prev, res.data]));
         setPupilId(res.data.id);
       }
 
@@ -214,7 +228,7 @@ export const ResultPanel = ({ result, originalText, sourceText = '', filename, f
         )
           .map(
             ([k, v]: [string, any]) =>
-              `<div class="criteria-cell"><span class="criteria-key">${k}</span> — ${v.score !== undefined ? v.score : v.result}${v.max !== undefined ? '/' + v.max : ''}${v.comment ? ': ' + v.comment : ''}</div>`,
+              `<div class="criteria-cell"><span class="criteria-key">${k}</span> - ${v.score !== undefined ? v.score : v.result}${v.max !== undefined ? '/' + v.max : ''}${v.comment ? ': ' + v.comment : ''}</div>`,
           )
           .join('')}</div></div>`
       : ''
@@ -279,7 +293,10 @@ export const ResultPanel = ({ result, originalText, sourceText = '', filename, f
                 autoComplete="off"
                 placeholder="Имя ученика (необязательно)"
                 value={pupilName}
-                onChange={(e) => { setPupilName(e.target.value); setPupilId(''); }}
+                onChange={(e) => {
+                  setPupilName(e.target.value);
+                  setPupilId('');
+                }}
                 onFocus={() => setShowPupilDrop(true)}
                 onBlur={() => setTimeout(() => setShowPupilDrop(false), 150)}
                 className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 focus:outline-none cursor-text"
@@ -289,7 +306,8 @@ export const ResultPanel = ({ result, originalText, sourceText = '', filename, f
               <div className="absolute left-0 right-0 top-full mt-1 z-20 bg-white border border-slate-200 rounded-xl shadow-lg max-h-40 overflow-y-auto">
                 {pupils
                   .filter(
-                    (p) => !pupilName.trim() || p.name.toLowerCase().includes(pupilName.toLowerCase()),
+                    (p) =>
+                      !pupilName.trim() || p.name.toLowerCase().includes(pupilName.toLowerCase()),
                   )
                   .map((p) => (
                     <button
@@ -349,8 +367,8 @@ export const ResultPanel = ({ result, originalText, sourceText = '', filename, f
           <div className="mx-5 mb-2 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
             <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
             <span>
-              Текст слишком короткий ({wordCount} сл. из минимум {minWords}).
-              Результат проверки может быть неточным — работа не соответствует требованиям к объёму.
+              Текст слишком короткий ({wordCount} сл. из минимум {minWords}). Результат проверки
+              может быть неточным - работа не соответствует требованиям к объёму.
             </span>
           </div>
         );
@@ -358,9 +376,7 @@ export const ResultPanel = ({ result, originalText, sourceText = '', filename, f
 
       <div className="grid grid-cols-2 gap-4 px-5 py-3 border-b border-slate-100">
         <div>
-          <p className="text-xs text-slate-400 mb-2 font-medium uppercase tracking-wide">
-            Оценка
-          </p>
+          <p className="text-xs text-slate-400 mb-2 font-medium uppercase tracking-wide">Оценка</p>
           {passFail != null ? (
             <select
               value={editedScore}
@@ -387,7 +403,7 @@ export const ResultPanel = ({ result, originalText, sourceText = '', filename, f
                   setScoreLabel(null);
                 }}
                 className="w-20 p-2 border border-slate-200 rounded-xl text-lg font-bold text-center focus:outline-none focus:border-indigo-400 cursor-text bg-slate-50 hover:border-slate-300 transition-colors"
-                placeholder="—"
+                placeholder="-"
               />
               <span className="text-slate-400 text-sm font-medium shrink-0">из</span>
               <input
@@ -436,9 +452,7 @@ export const ResultPanel = ({ result, originalText, sourceText = '', filename, f
                 {val.max !== undefined && (
                   <span className="text-slate-300 shrink-0 pt-0.5">/{val.max}</span>
                 )}
-                {val.comment && (
-                  <span className="text-slate-400 leading-tight">{val.comment}</span>
-                )}
+                {val.comment && <span className="text-slate-400 leading-tight">{val.comment}</span>}
               </div>
             ))}
           </div>

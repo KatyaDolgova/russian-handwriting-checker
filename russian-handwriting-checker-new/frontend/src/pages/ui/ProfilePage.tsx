@@ -211,6 +211,7 @@ export const ProfilePage = () => {
                     type={showCur ? 'text' : 'password'}
                     value={curPwd}
                     onChange={(e) => setCurPwd(e.target.value)}
+                    autoComplete="new-password"
                     className="w-full border border-slate-200 rounded-xl px-3 py-2.5 pr-10 text-sm outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400"
                   />
                   <button
@@ -232,6 +233,7 @@ export const ProfilePage = () => {
                       type={showNew ? 'text' : 'password'}
                       value={newPwd}
                       onChange={(e) => setNewPwd(e.target.value)}
+                      autoComplete="new-password"
                       className="w-full border border-slate-200 rounded-xl px-3 py-2.5 pr-10 text-sm outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400"
                     />
                     <button
@@ -252,6 +254,7 @@ export const ProfilePage = () => {
                       type={showConfirm ? 'text' : 'password'}
                       value={confirmPwd}
                       onChange={(e) => setConfirmPwd(e.target.value)}
+                      autoComplete="new-password"
                       className="w-full border border-slate-200 rounded-xl px-3 py-2.5 pr-10 text-sm outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400"
                     />
                     <button
@@ -299,7 +302,7 @@ export const ProfilePage = () => {
                 <StatCard
                   icon={<TrendingUp className="h-4 w-4 text-emerald-400" />}
                   label="Средний балл"
-                  value={data.stats.avg_pct > 0 ? `${data.stats.avg_pct}%` : '—'}
+                  value={data.stats.avg_pct > 0 ? `${data.stats.avg_pct}%` : '-'}
                 />
                 <StatCard
                   icon={<BookOpen className="h-4 w-4 text-violet-400" />}

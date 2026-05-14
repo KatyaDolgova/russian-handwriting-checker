@@ -15,7 +15,7 @@ export const CheckMini = ({ check, folders }: { check: CheckRecord; folders: Fol
       ? 'text-emerald-600 bg-emerald-50 border-emerald-200'
       : 'text-red-600 bg-red-50 border-red-200';
   } else if (check.score == null) {
-    badgeContent = '—';
+    badgeContent = '-';
     color = 'text-slate-300 bg-slate-50 border-slate-200';
   } else {
     const pct = check.score_max != null && check.score_max > 0 ? check.score / check.score_max : 0;

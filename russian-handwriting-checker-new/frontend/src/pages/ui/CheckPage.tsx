@@ -20,7 +20,7 @@ export const CheckPage = ({ state, setState }: CheckPageProps) => {
     if (!selectedFn) return null;
     const name = selectedFn.name.toLowerCase();
     if (name.includes('полная работа огэ'))
-      return 'В поле «Текст работы» вставьте сначала изложение, затем — сочинение. Разделите их пустой строкой или пометкой «СОЧИНЕНИЕ:»';
+      return 'В поле «Текст работы» вставьте сначала изложение, затем - сочинение. Разделите их пустой строкой или пометкой «СОЧИНЕНИЕ:»';
     return null;
   })();
 
@@ -70,7 +70,7 @@ export const CheckPage = ({ state, setState }: CheckPageProps) => {
       <div className="flex flex-col gap-5">
         <UploadForm onSuccess={handleUploadSuccess} />
 
-        {/* Исходный текст — необязательное поле */}
+        {/* Исходный текст - необязательное поле */}
         {showSource ? (
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -79,7 +79,9 @@ export const CheckPage = ({ state, setState }: CheckPageProps) => {
                 <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
                   Исходный текст
                 </h2>
-                <span className="text-xs text-slate-400 font-normal normal-case">(необязательно)</span>
+                <span className="text-xs text-slate-400 font-normal normal-case">
+                  (необязательно)
+                </span>
               </div>
               <button
                 onClick={handleClearSource}
@@ -107,8 +109,7 @@ export const CheckPage = ({ state, setState }: CheckPageProps) => {
             onClick={() => setShowSource(true)}
             className="cursor-pointer flex items-center gap-2 text-sm text-slate-400 hover:text-indigo-600 transition-colors self-start px-1"
           >
-            <BookOpen className="h-4 w-4" />
-            + Добавить исходный текст
+            <BookOpen className="h-4 w-4" />+ Добавить исходный текст
           </button>
         )}
 

@@ -324,7 +324,7 @@
         <mxCell id="leg_ext_t" parent="1" style="text;html=1;align=left;fontSize=11;strokeColor=none;fillColor=none;" value="«extend»: опциональное расширение (при условии)" vertex="1">
           <mxGeometry height="22" width="285" x="930" y="-126" as="geometry" />
         </mxCell>
-        <mxCell id="leg_note" parent="1" style="text;html=1;align=left;fontSize=11;strokeColor=none;fillColor=none;fontStyle=2;" value="Цветные области — логические группы" vertex="1">
+        <mxCell id="leg_note" parent="1" style="text;html=1;align=left;fontSize=11;strokeColor=none;fillColor=none;fontStyle=2;" value="Цветные области - логические группы" vertex="1">
           <mxGeometry height="22" width="335" x="880" y="-85" as="geometry" />
         </mxCell>
         <mxCell id="LMfiu9J3kvMdZo_cUly9-1" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Actor" vertex="1">

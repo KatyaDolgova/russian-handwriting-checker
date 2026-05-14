@@ -24,7 +24,7 @@ class DocumentConverter:
 
         logger.info("Обработка файла: %s (%s)", path.name, ext)
 
-        # Если это изображение — используем гибридный OCR
+        # Если это изображение - используем гибридный OCR
         if ext in ['.jpg', '.jpeg', '.png', '.bmp', '.tiff']:
             try:
                 logger.info("Изображение → используем HybridOCR")
@@ -32,7 +32,7 @@ class DocumentConverter:
             except Exception as e:
                 logger.error("HybridOCR ошибка: %s", e, exc_info=True)
 
-        # Для всех остальных форматов (PDF, DOCX и т.д.) — используем MarkItDown
+        # Для всех остальных форматов (PDF, DOCX и т.д.) - используем MarkItDown
         try:
             logger.info("Документ → используем MarkItDown")
             result = self.md.convert(str(path))
