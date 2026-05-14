@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo } from 'react';
 import { User2, Loader2, ChevronDown, ChevronUp, Users, Search, X } from 'lucide-react';
 import api from '@/api';
-import type { CheckRecord, Folder, Group, PctFilter, StudentsSortKey as SortKey } from '@/types';
+import type { CheckRecord, Folder, Group, Pupil, PctFilter, StudentsSortKey as SortKey } from '@/types';
 import { formatDate, scoreColor } from '@/utils';
 import { ScoreBar, CheckMini, GroupSection } from '@/components/ui';
 
 interface StudentStats {
+  id: string;
   name: string;
   checks: CheckRecord[];
   avgPct: number;
@@ -21,7 +22,7 @@ export const StudentsPanel = () => {
   const [pupilGroups, setPupilGroups] = useState<Map<string, string>>(new Map());
   const [folders, setFolders] = useState<Folder[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandedName, setExpandedName] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showGroupMgr, setShowGroupMgr] = useState(false);
 
   const [filterGroup, setFilterGroup] = useState<string>('all');
@@ -55,7 +56,7 @@ export const StudentsPanel = () => {
         setChecks(ch);
         setGroups(gr);
         const map = new Map<string, string>();
-        for (const a of pg) map.set(a.pupil_name, a.group_id);
+        for (const a of pg) map.set(a.pupil_id, a.group_id);
         setPupilGroups(map);
         setFolders(fl);
       })
@@ -83,30 +84,30 @@ export const StudentsPanel = () => {
     if (filterGroup === id) setFilterGroup('all');
   };
 
-  const handleAssignGroup = async (pupilName: string, groupId: string) => {
+  const handleAssignGroup = async (pupilId: string, groupId: string) => {
     await api.post('/api/groups/pupils/assign', {
-      pupil_name: pupilName,
+      pupil_id: pupilId,
       group_id: groupId || null,
     });
     setPupilGroups((prev) => {
       const next = new Map(prev);
-      if (groupId) next.set(pupilName, groupId);
-      else next.delete(pupilName);
+      if (groupId) next.set(pupilId, groupId);
+      else next.delete(pupilId);
       return next;
     });
   };
 
   const handleBulkAssignGroup = async () => {
     if (!bulkGroupId) return;
-    const names = [...selectedNames];
-    await Promise.all(names.map((n) => handleAssignGroup(n, bulkGroupId)));
+    const ids = [...selectedNames];
+    await Promise.all(ids.map((id) => handleAssignGroup(id, bulkGroupId)));
     setSelectedNames(new Set());
     setBulkGroupId('');
   };
 
   const handleBulkRemoveFromGroup = async () => {
-    const names = [...selectedNames];
-    await Promise.all(names.map((n) => handleAssignGroup(n, '')));
+    const ids = [...selectedNames];
+    await Promise.all(ids.map((id) => handleAssignGroup(id, '')));
     setSelectedNames(new Set());
   };
 
@@ -118,11 +119,11 @@ export const StudentsPanel = () => {
     setSort('works_desc');
   };
 
-  const toggleSelect = (name: string) =>
+  const toggleSelect = (id: string) =>
     setSelectedNames((prev) => {
       const next = new Set(prev);
-      if (next.has(name)) next.delete(name);
-      else next.add(name);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
 
@@ -135,13 +136,14 @@ export const StudentsPanel = () => {
   const students = useMemo<StudentStats[]>(() => {
     const map = new Map<string, CheckRecord[]>();
     for (const c of folderFilteredChecks) {
-      const key = c.pupil_name?.trim() || '\x00';
+      const key = c.pupil_id?.trim() || '\x00';
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(c);
     }
     const result: StudentStats[] = [];
     map.forEach((cs, key) => {
       if (key === '\x00') return;
+      const name = cs[0]?.pupil_name || key;
       const scored = cs.filter((c) => c.score != null && c.score_max != null);
       const totalScore = scored.reduce((s, c) => s + (c.score ?? 0), 0);
       const totalMax = scored.reduce((s, c) => s + (c.score_max ?? 0), 0);
@@ -151,7 +153,8 @@ export const StudentsPanel = () => {
         c.score_max != null && c.score_max > 0 ? ((c.score ?? 0) / c.score_max) * 100 : 0,
       );
       result.push({
-        name: key,
+        id: key,
+        name,
         checks: [...cs].sort((a, b) => {
           const da = a.work_date || a.created_at;
           const db = b.work_date || b.created_at;
@@ -174,8 +177,8 @@ export const StudentsPanel = () => {
     let result = students;
 
     if (filterGroup !== 'all') {
-      if (filterGroup === '') result = result.filter((s) => !pupilGroups.has(s.name));
-      else result = result.filter((s) => pupilGroups.get(s.name) === filterGroup);
+      if (filterGroup === '') result = result.filter((s) => !pupilGroups.has(s.id));
+      else result = result.filter((s) => pupilGroups.get(s.id) === filterGroup);
     }
     if (search.trim()) {
       const q = search.toLowerCase().trim();
@@ -206,19 +209,29 @@ export const StudentsPanel = () => {
   }, [displayedStudents]);
 
   const isAllSelected =
-    displayedStudents.length > 0 && displayedStudents.every((s) => selectedNames.has(s.name));
+    displayedStudents.length > 0 && displayedStudents.every((s) => selectedNames.has(s.id));
 
   const toggleAll = () => {
     if (isAllSelected) setSelectedNames(new Set());
-    else setSelectedNames(new Set(displayedStudents.map((s) => s.name)));
+    else setSelectedNames(new Set(displayedStudents.map((s) => s.id)));
   };
 
-  const allPupils = useMemo(
-    () => [...new Set(checks.map((c) => c.pupil_name).filter(Boolean) as string[])].sort(),
+  const allPupils = useMemo<Pupil[]>(
+    () => {
+      const seen = new Set<string>();
+      const result: Pupil[] = [];
+      for (const c of checks) {
+        if (c.pupil_id && c.pupil_name && !seen.has(c.pupil_id)) {
+          seen.add(c.pupil_id);
+          result.push({ id: c.pupil_id, name: c.pupil_name });
+        }
+      }
+      return result.sort((a, b) => a.name.localeCompare(b.name, 'ru'));
+    },
     [checks],
   );
 
-  const hasAnyStudents = checks.some((c) => c.pupil_name?.trim());
+  const hasAnyStudents = checks.some((c) => c.pupil_id?.trim());
 
   const hasActiveFilters =
     search.trim() !== '' || filterGroup !== 'all' || filterFolder !== 'all' || pctFilter !== 'all';
@@ -435,13 +448,13 @@ export const StudentsPanel = () => {
           </div>
         ) : (
           displayedStudents.map((student) => {
-            const groupId = pupilGroups.get(student.name);
+            const groupId = pupilGroups.get(student.id);
             const groupName = groupId ? groups.find((g) => g.id === groupId)?.name : null;
-            const isExpanded = expandedName === student.name;
+            const isExpanded = expandedId === student.id;
 
             return (
               <div
-                key={student.name}
+                key={student.id}
                 className="bg-white rounded-2xl border border-slate-200 overflow-hidden"
               >
                 <div className="flex items-center">
@@ -449,8 +462,8 @@ export const StudentsPanel = () => {
                   <div className="pl-4 py-4 shrink-0">
                     <input
                       type="checkbox"
-                      checked={selectedNames.has(student.name)}
-                      onChange={() => toggleSelect(student.name)}
+                      checked={selectedNames.has(student.id)}
+                      onChange={() => toggleSelect(student.id)}
                       onClick={(e) => e.stopPropagation()}
                       className="w-4 h-4 accent-indigo-600 cursor-pointer"
                     />
@@ -458,7 +471,7 @@ export const StudentsPanel = () => {
 
                   {/* Main row */}
                   <button
-                    onClick={() => setExpandedName(isExpanded ? null : student.name)}
+                    onClick={() => setExpandedId(isExpanded ? null : student.id)}
                     className="cursor-pointer flex-1 flex items-center gap-4 px-4 py-4 hover:bg-slate-50 transition-colors text-left"
                   >
                     <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center shrink-0">
@@ -518,7 +531,7 @@ export const StudentsPanel = () => {
                       </span>
                       <select
                         value={groupId || ''}
-                        onChange={(e) => handleAssignGroup(student.name, e.target.value)}
+                        onChange={(e) => handleAssignGroup(student.id, e.target.value)}
                         className="cursor-pointer flex-1 max-w-xs pl-3 pr-8 py-1.5 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:border-indigo-400"
                       >
                         <option value="">Без группы</option>

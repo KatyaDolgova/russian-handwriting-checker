@@ -17,11 +17,17 @@ export interface Group {
   description?: string;
 }
 
+export interface Pupil {
+  id: string;
+  name: string;
+}
+
 export interface CheckRecord {
   id: string;
   filename: string;
   title?: string | null;
-  pupil_name?: string;
+  pupil_id?: string | null;
+  pupil_name?: string | null;
   score: number | null;
   score_max: number | null;
   comment: string;
@@ -37,7 +43,7 @@ export interface EditForm {
   scoreMax: string;
   comment: string;
   corrected_text: string;
-  pupil_name: string;
+  pupil_id: string;
   workDate: string;
   folder_id: string;
 }

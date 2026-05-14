@@ -15,7 +15,7 @@ import {
 import api from '@/api';
 import { useToast, ScoreCircle, CopyBtn, ConfirmDelete, FolderSection } from '@/components/ui';
 import { formatDate } from '@/utils';
-import type { Folder, DateFilter, SortKey, CheckRecord, EditForm } from '@/types';
+import type { Folder, DateFilter, SortKey, CheckRecord, EditForm, Pupil } from '@/types';
 import { EditPanel } from '@/components/panels';
 
 export const HistoryPanel = () => {
@@ -23,6 +23,7 @@ export const HistoryPanel = () => {
   const [checks, setChecks] = useState<CheckRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [folders, setFolders] = useState<Folder[]>([]);
+  const [pupils, setPupils] = useState<Pupil[]>([]);
   const [showFolderMgr, setShowFolderMgr] = useState(false);
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -50,10 +51,15 @@ export const HistoryPanel = () => {
         .get('/api/folders/')
         .then((r) => r.data)
         .catch(() => []),
+      api
+        .get('/api/pupils/')
+        .then((r) => r.data)
+        .catch(() => []),
     ])
-      .then(([ch, fl]) => {
+      .then(([ch, fl, pu]) => {
         setChecks(ch);
         setFolders(fl);
+        setPupils(pu);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -79,10 +85,11 @@ export const HistoryPanel = () => {
       score_max: maxNum,
       comment: form.comment,
       corrected_text: form.corrected_text,
-      pupil_name: form.pupil_name || null,
+      pupil_id: form.pupil_id || null,
       work_date: workDateIso,
       folder_id: form.folder_id || null,
     });
+    const selectedPupil = form.pupil_id ? pupils.find((p) => p.id === form.pupil_id) : null;
     setChecks((prev) =>
       prev.map((c) =>
         c.id === id
@@ -92,7 +99,8 @@ export const HistoryPanel = () => {
               score_max: maxNum,
               comment: form.comment,
               corrected_text: form.corrected_text,
-              pupil_name: form.pupil_name || undefined,
+              pupil_id: form.pupil_id || null,
+              pupil_name: selectedPupil?.name || null,
               work_date: workDateIso,
               folder_id: form.folder_id || null,
             }
@@ -170,7 +178,7 @@ export const HistoryPanel = () => {
 
   const stats = useMemo(() => {
     if (!filtered.length) return null;
-    const students = new Set(filtered.map((c) => c.pupil_name).filter(Boolean)).size;
+    const students = new Set(filtered.map((c) => c.pupil_id).filter(Boolean)).size;
     const scored = filtered.filter((c) => c.score != null && c.score_max != null);
     const totalScore = scored.reduce((s, c) => s + (c.score ?? 0), 0);
     const totalMax = scored.reduce((s, c) => s + (c.score_max ?? 0), 0);
@@ -509,6 +517,7 @@ export const HistoryPanel = () => {
                     <EditPanel
                       check={check}
                       folders={folders}
+                      pupils={pupils}
                       onSave={handleSaveEdit}
                       onCancel={() => setEditingId(null)}
                     />

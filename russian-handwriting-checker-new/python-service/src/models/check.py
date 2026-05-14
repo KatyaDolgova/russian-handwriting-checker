@@ -17,7 +17,7 @@ class Check(Base):
     score_max = Column(Float, nullable=True)
     comment = Column(Text)
     title = Column(String, nullable=True)
-    pupil_name = Column(String, nullable=True)
+    pupil_id = Column(String, nullable=True)
     function_id = Column(String)
     folder_id = Column(String, nullable=True)
     work_date = Column(DateTime(timezone=True), nullable=True)

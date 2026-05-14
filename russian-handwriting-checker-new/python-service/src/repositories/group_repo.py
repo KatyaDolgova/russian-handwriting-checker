@@ -1,5 +1,6 @@
 from sqlalchemy import select, delete as sql_delete
 from src.models.group import Group, PupilGroup
+from src.models.pupil import Pupil
 
 
 class GroupRepository:
@@ -40,19 +41,25 @@ class GroupRepository:
             await self.db.delete(obj)
             await self.db.commit()
 
-    async def get_pupil_groups(self, user_id: str) -> list[PupilGroup]:
+    async def get_pupil_groups(self, user_id: str) -> list[dict]:
         res = await self.db.execute(
-            select(PupilGroup).where(PupilGroup.user_id == user_id)
+            select(PupilGroup, Pupil.name.label("pupil_name"))
+            .join(Pupil, PupilGroup.pupil_id == Pupil.id)
+            .where(PupilGroup.user_id == user_id)
         )
-        return res.scalars().all()
+        rows = res.all()
+        return [
+            {"pupil_id": pg.pupil_id, "pupil_name": name, "group_id": pg.group_id}
+            for pg, name in rows
+        ]
 
-    async def set_pupil_group(self, user_id: str, pupil_name: str, group_id: str | None) -> None:
+    async def set_pupil_group(self, user_id: str, pupil_id: str, group_id: str | None) -> None:
         await self.db.execute(
             sql_delete(PupilGroup).where(
                 PupilGroup.user_id == user_id,
-                PupilGroup.pupil_name == pupil_name,
+                PupilGroup.pupil_id == pupil_id,
             )
         )
         if group_id:
-            self.db.add(PupilGroup(user_id=user_id, pupil_name=pupil_name, group_id=group_id))
+            self.db.add(PupilGroup(user_id=user_id, pupil_id=pupil_id, group_id=group_id))
         await self.db.commit()

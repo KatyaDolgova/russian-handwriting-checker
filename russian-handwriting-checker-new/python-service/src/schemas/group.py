@@ -8,5 +8,5 @@ class GroupCreate(BaseModel):
 
 
 class PupilGroupAssign(BaseModel):
-    pupil_name: str
+    pupil_id: str
     group_id: Optional[str] = None

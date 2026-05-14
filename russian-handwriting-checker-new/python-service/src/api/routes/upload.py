@@ -26,7 +26,7 @@ async def upload(file: UploadFile = File(...), background_tasks: BackgroundTasks
     # сохраняем статус
     tasks[task_id] = {"status": "processing"}
 
-    # 🔥 запускаем OCR в фоне
+    # запускаем OCR в фоне
     background_tasks.add_task(
         ocr_service.process_file,
         str(path),

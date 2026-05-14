@@ -13,7 +13,7 @@ import api from '@/api';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/ui/Toast';
 import { CopyBtn, ScoreBadge } from '@/components/ui';
-import type { Folder } from '@/types';
+import type { Folder, Pupil } from '@/types';
 
 interface ResultPanelProps {
   result: any;
@@ -32,8 +32,9 @@ export const ResultPanel = ({ result, originalText, filename, functionId }: Resu
   const [scoreMax, setScoreMax] = useState('5');
   const [editedComment, setEditedComment] = useState(result.comment || '');
   const [title, setTitle] = useState('');
+  const [pupilId, setPupilId] = useState('');
   const [pupilName, setPupilName] = useState('');
-  const [knownPupils, setKnownPupils] = useState<string[]>([]);
+  const [pupils, setPupils] = useState<Pupil[]>([]);
   const [showPupilDrop, setShowPupilDrop] = useState(false);
   const [workDate, setWorkDate] = useState(() => {
     const d = new Date();
@@ -59,9 +60,7 @@ export const ResultPanel = ({ result, originalText, filename, functionId }: Resu
     if (user) {
       api
         .get('/api/pupils/')
-        .then((r) => {
-          setKnownPupils((r.data as { name: string }[]).map((p) => p.name));
-        })
+        .then((r) => setPupils(r.data as Pupil[]))
         .catch(() => {});
     }
   }, [user]);
@@ -75,6 +74,17 @@ export const ResultPanel = ({ result, originalText, filename, functionId }: Resu
     setSaving(true);
     setSaved(false);
     try {
+      let resolvedPupilId = pupilId;
+
+      if (!resolvedPupilId && pupilName.trim()) {
+        const res = await api.post('/api/pupils/', { name: pupilName.trim() });
+        resolvedPupilId = res.data.id;
+        setPupils((prev) =>
+          prev.find((p) => p.id === res.data.id) ? prev : [...prev, res.data],
+        );
+        setPupilId(res.data.id);
+      }
+
       const hasScore = editedScore.trim() !== '';
       await api.post('/api/check/save', {
         filename,
@@ -86,7 +96,7 @@ export const ResultPanel = ({ result, originalText, filename, functionId }: Resu
         score_max: hasScore ? parseFloat(scoreMax) || 5 : null,
         comment: editedComment,
         function_id: functionId,
-        pupil_name: pupilName.trim() || undefined,
+        pupil_id: resolvedPupilId || undefined,
         folder_id: folderId || undefined,
         work_date: new Date(workDate).toISOString(),
       });
@@ -208,30 +218,31 @@ export const ResultPanel = ({ result, originalText, filename, functionId }: Resu
                 autoComplete="off"
                 placeholder="Имя ученика (необязательно)"
                 value={pupilName}
-                onChange={(e) => setPupilName(e.target.value)}
+                onChange={(e) => { setPupilName(e.target.value); setPupilId(''); }}
                 onFocus={() => setShowPupilDrop(true)}
                 onBlur={() => setTimeout(() => setShowPupilDrop(false), 150)}
                 className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 focus:outline-none cursor-text"
               />
             </div>
-            {showPupilDrop && knownPupils.length > 0 && (
+            {showPupilDrop && pupils.length > 0 && (
               <div className="absolute left-0 right-0 top-full mt-1 z-20 bg-white border border-slate-200 rounded-xl shadow-lg max-h-40 overflow-y-auto">
-                {knownPupils
+                {pupils
                   .filter(
-                    (p) => !pupilName.trim() || p.toLowerCase().includes(pupilName.toLowerCase()),
+                    (p) => !pupilName.trim() || p.name.toLowerCase().includes(pupilName.toLowerCase()),
                   )
                   .map((p) => (
                     <button
-                      key={p}
+                      key={p.id}
                       type="button"
                       onMouseDown={() => {
-                        setPupilName(p);
+                        setPupilId(p.id);
+                        setPupilName(p.name);
                         setShowPupilDrop(false);
                       }}
                       className="cursor-pointer w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 flex items-center gap-2 first:rounded-t-xl last:rounded-b-xl"
                     >
                       <User2 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                      {p}
+                      {p.name}
                     </button>
                   ))}
               </div>

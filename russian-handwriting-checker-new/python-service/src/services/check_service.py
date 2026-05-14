@@ -77,7 +77,6 @@ class CheckService:
             return json.loads(match.group(0))
         except json.JSONDecodeError as e:
             logger.warning(f"JSON parse error: {e}")
-            # Try to fix common LLM JSON issues: trailing commas
             fixed = re.sub(r",\s*([\]}])", r"\1", match.group(0))
             try:
                 return json.loads(fixed)

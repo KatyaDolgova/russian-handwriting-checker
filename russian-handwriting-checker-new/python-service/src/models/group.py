@@ -19,5 +19,5 @@ class PupilGroup(Base):
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String, nullable=False, index=True)
-    pupil_name = Column(String, nullable=False)
+    pupil_id = Column(String, nullable=False)
     group_id = Column(String, nullable=False)

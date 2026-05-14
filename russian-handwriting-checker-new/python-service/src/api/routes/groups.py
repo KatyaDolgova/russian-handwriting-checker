@@ -47,8 +47,7 @@ async def delete_group(
 
 @router.get("/pupils")
 async def get_pupil_groups(db=Depends(get_db), current_user=Depends(get_current_user)):
-    items = await GroupRepository(db).get_pupil_groups(current_user["user_id"])
-    return [{"pupil_name": a.pupil_name, "group_id": a.group_id} for a in items]
+    return await GroupRepository(db).get_pupil_groups(current_user["user_id"])
 
 
 @router.post("/pupils/assign")
@@ -58,6 +57,6 @@ async def assign_pupil(
     current_user=Depends(get_current_user),
 ):
     await GroupRepository(db).set_pupil_group(
-        current_user["user_id"], data.pupil_name, data.group_id
+        current_user["user_id"], data.pupil_id, data.group_id
     )
     return {"success": True}

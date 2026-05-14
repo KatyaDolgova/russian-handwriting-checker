@@ -49,10 +49,6 @@ async def save(
     db=Depends(get_db),
     user_id: str | None = Depends(get_optional_user_id),
 ):
-    import uuid as _uuid
-    from sqlalchemy import select
-    from src.models.pupil import Pupil
-
     repo = CheckRepository(db)
     obj = await repo.create({
         "filename": request.filename,
@@ -63,22 +59,12 @@ async def save(
         "score": request.score,
         "score_max": request.score_max,
         "comment": request.comment,
-        "pupil_name": request.pupil_name,
+        "pupil_id": request.pupil_id,
         "function_id": request.function_id,
         "folder_id": request.folder_id,
         "work_date": request.work_date,
         "user_id": user_id,
     })
-
-    if request.pupil_name and request.pupil_name.strip() and user_id:
-        name = request.pupil_name.strip()
-        existing = await db.execute(
-            select(Pupil).where(Pupil.user_id == user_id, Pupil.name == name)
-        )
-        if not existing.scalar_one_or_none():
-            db.add(Pupil(id=str(_uuid.uuid4()), user_id=user_id, name=name))
-            await db.commit()
-
     return {"success": True, "id": obj.id}
 
 

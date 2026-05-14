@@ -19,7 +19,7 @@ class SaveCheckRequest(BaseModel):
     comment: str
     function_id: str
     folder_id: Optional[str] = None
-    pupil_name: Optional[str] = None
+    pupil_id: Optional[str] = None
     work_date: Optional[datetime] = None
 
 
@@ -28,6 +28,6 @@ class UpdateCheckRequest(BaseModel):
     score_max: Optional[float] = None
     comment: Optional[str] = None
     corrected_text: Optional[str] = None
-    pupil_name: Optional[str] = None
+    pupil_id: Optional[str] = None
     work_date: Optional[datetime] = None
     folder_id: Optional[str] = None

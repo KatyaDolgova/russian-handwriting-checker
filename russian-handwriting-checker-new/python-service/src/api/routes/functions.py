@@ -12,9 +12,6 @@ router = APIRouter(prefix="/functions")
 class PublishRequest(BaseModel):
     change_note: Optional[str] = None
 
-
-# ── Основные CRUD ─────────────────────────────────────────────────────────────
-
 @router.get("/")
 async def list_functions(
     db=Depends(get_db),
@@ -75,7 +72,7 @@ async def delete_function(
     return {"success": True}
 
 
-# ── Галерея ───────────────────────────────────────────────────────────────────
+#  Галерея
 
 @router.get("/gallery")
 async def gallery(
@@ -86,7 +83,7 @@ async def gallery(
     return await FunctionRepository(db).list_gallery(user_id, search)
 
 
-# ── Публикация ────────────────────────────────────────────────────────────────
+# Публикация
 
 @router.post("/{function_id}/publish")
 async def publish_function(
@@ -106,7 +103,7 @@ async def publish_function(
     return await repo.publish(function_id, body.change_note)
 
 
-# ── Копирование из галереи ────────────────────────────────────────────────────
+# Копирование из галереи
 
 @router.post("/{function_id}/copy")
 async def copy_function(
@@ -123,7 +120,7 @@ async def copy_function(
     return await repo.copy(function_id, current_user["user_id"])
 
 
-# ── История версий ────────────────────────────────────────────────────────────
+# История версий
 
 @router.get("/{function_id}/versions")
 async def function_versions(

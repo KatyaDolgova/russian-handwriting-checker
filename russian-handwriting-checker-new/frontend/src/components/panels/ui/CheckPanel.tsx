@@ -7,6 +7,7 @@ import type { Fn } from '@/types';
 
 interface CheckPanelProps {
   text: string;
+  sourceText?: string;
   onCheckComplete: (result: Record<string, unknown>, functionId: string) => void;
   onStreamChunk: (chunk: string) => void;
   onStreamStart: () => void;
@@ -15,6 +16,7 @@ interface CheckPanelProps {
 
 export const CheckPanel = ({
   text,
+  sourceText = '',
   onCheckComplete,
   onStreamChunk,
   onStreamStart,
@@ -42,6 +44,11 @@ export const CheckPanel = ({
     onStreamCancel?.();
   };
 
+  const buildText = () => {
+    if (!sourceText.trim()) return text;
+    return `ИСХОДНЫЙ ТЕКСТ:\n${sourceText.trim()}\n\nТЕКСТ УЧЕНИКА:\n${text.trim()}`;
+  };
+
   const handleCheck = async () => {
     const tmpl = selectedFn?.user_template ?? '';
     if (tmpl.includes('{text}') && !text.trim()) {
@@ -64,7 +71,7 @@ export const CheckPanel = ({
       const response = await fetch('/api/check/stream', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ text, function_id: selectedId }),
+        body: JSON.stringify({ text: buildText(), function_id: selectedId }),
         signal: controller.signal,
       });
 

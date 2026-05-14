@@ -112,10 +112,10 @@ async def me(
     total_checks = total_q.scalar() or 0
 
     students_q = await db.execute(
-        select(func.count(distinct(Check.pupil_name)))
+        select(func.count(distinct(Check.pupil_id)))
         .where(Check.user_id == user_id)
-        .where(Check.pupil_name.isnot(None))
-        .where(Check.pupil_name != "")
+        .where(Check.pupil_id.isnot(None))
+        .where(Check.pupil_id != "")
     )
     unique_students = students_q.scalar() or 0
 

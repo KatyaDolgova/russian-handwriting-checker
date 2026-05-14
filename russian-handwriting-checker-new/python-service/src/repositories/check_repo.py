@@ -1,5 +1,6 @@
 from sqlalchemy import select
 from src.models.check import Check
+from src.models.pupil import Pupil
 
 
 class CheckRepository:
@@ -16,21 +17,27 @@ class CheckRepository:
         res = await self.db.execute(select(Check).where(Check.id == check_id))
         return res.scalar_one_or_none()
 
-    async def get_by_user(self, user_id: str) -> list[Check]:
+    async def get_by_user(self, user_id: str) -> list[dict]:
         res = await self.db.execute(
-            select(Check)
+            select(Check, Pupil.name.label("pupil_name"))
+            .outerjoin(Pupil, Check.pupil_id == Pupil.id)
             .where(Check.user_id == user_id)
             .order_by(Check.created_at.desc())
         )
-        return res.scalars().all()
+        rows = res.all()
+        result = []
+        for check, pupil_name in rows:
+            d = {col.key: getattr(check, col.key) for col in check.__table__.columns}
+            d["pupil_name"] = pupil_name
+            result.append(d)
+        return result
 
     async def update(self, check_id: str, data: dict) -> Check | None:
         obj = await self.get(check_id)
         if not obj:
             return None
         for key, value in data.items():
-            if value is not None:
-                setattr(obj, key, value)
+            setattr(obj, key, value)
         await self.db.commit()
         await self.db.refresh(obj)
         return obj

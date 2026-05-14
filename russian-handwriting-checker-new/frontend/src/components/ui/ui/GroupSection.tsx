@@ -1,15 +1,15 @@
-import type { Group } from '@/types';
+import type { Group, Pupil } from '@/types';
 import { Users, X, Pencil, Trash2, AlertCircle, Plus } from 'lucide-react';
 import { useState } from 'react';
 
 interface GroupSectionProps {
   groups: Group[];
-  pupils: string[];
+  pupils: Pupil[];
   pupilGroups: Map<string, string>;
   onAddGroup: (name: string) => Promise<void>;
   onUpdateGroup: (id: string, name: string) => Promise<void>;
   onDeleteGroup: (id: string) => Promise<void>;
-  onAssignGroup: (pupilName: string, groupId: string) => Promise<void>;
+  onAssignGroup: (pupilId: string, groupId: string) => Promise<void>;
 }
 
 export const GroupSection = ({
@@ -150,11 +150,11 @@ export const GroupSection = ({
             Назначение учеников
           </p>
           {pupils.map((pupil) => (
-            <div key={pupil} className="flex items-center gap-3">
-              <span className="flex-1 text-sm text-slate-700 truncate">{pupil}</span>
+            <div key={pupil.id} className="flex items-center gap-3">
+              <span className="flex-1 text-sm text-slate-700 truncate">{pupil.name}</span>
               <select
-                value={pupilGroups.get(pupil) || ''}
-                onChange={(e) => onAssignGroup(pupil, e.target.value)}
+                value={pupilGroups.get(pupil.id) || ''}
+                onChange={(e) => onAssignGroup(pupil.id, e.target.value)}
                 className="cursor-pointer text-xs border border-slate-200 bg-white rounded-lg pl-2 pr-6 py-1.5 text-slate-600 focus:outline-none focus:border-indigo-400 max-w-[160px]"
               >
                 <option value="">Без группы</option>
