@@ -13,7 +13,7 @@ import {
   FolderClosed,
 } from 'lucide-react';
 import api from '@/api';
-import { useToast, ScoreCircle, CopyBtn, ConfirmDelete, FolderSection } from '@/components/ui';
+import { useToast, ScoreCircle, CopyBtn, ConfirmDelete, FolderSection, HighlightedText } from '@/components/ui';
 import { formatDate } from '@/utils';
 import type { Folder, DateFilter, SortKey, CheckRecord, EditForm, Pupil } from '@/types';
 import { EditPanel } from '@/components/panels';
@@ -578,9 +578,17 @@ export const HistoryPanel = () => {
                           <div className="flex justify-end mb-1">
                             <CopyBtn text={check.original_text} />
                           </div>
-                          <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 text-sm text-slate-700 max-h-48 overflow-y-auto whitespace-pre-wrap leading-relaxed">
-                            {check.original_text}
-                          </div>
+                          {check.errors && check.errors.length > 0 ? (
+                            <HighlightedText
+                              text={check.original_text}
+                              errors={check.errors}
+                              className="bg-amber-50 border border-amber-100 rounded-xl p-4 text-sm text-slate-700 max-h-48 overflow-y-auto whitespace-pre-wrap leading-relaxed"
+                            />
+                          ) : (
+                            <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 text-sm text-slate-700 max-h-48 overflow-y-auto whitespace-pre-wrap leading-relaxed">
+                              {check.original_text}
+                            </div>
+                          )}
                         </div>
                       )}
                       {check.corrected_text && (

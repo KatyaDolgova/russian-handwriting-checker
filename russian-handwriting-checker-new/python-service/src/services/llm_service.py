@@ -15,7 +15,7 @@ class LLMService:
             model=settings.ollama_model,
             messages=messages,
             temperature=0.7,
-            max_tokens=2000,
+            max_tokens=8000,
             timeout=timeout,
         )
         return res.choices[0].message.content
@@ -25,7 +25,7 @@ class LLMService:
             model=settings.ollama_model,
             messages=messages,
             temperature=0.7,
-            max_tokens=2000,
+            max_tokens=8000,
             timeout=timeout,
             stream=True,
         )

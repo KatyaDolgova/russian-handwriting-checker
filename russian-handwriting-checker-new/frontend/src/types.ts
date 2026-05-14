@@ -22,6 +22,13 @@ export interface Pupil {
   name: string;
 }
 
+export interface CheckError {
+  original: string;
+  corrected?: string;
+  type?: string;
+  comment?: string;
+}
+
 export interface CheckRecord {
   id: string;
   filename: string;
@@ -34,6 +41,7 @@ export interface CheckRecord {
   comment: string;
   corrected_text?: string;
   original_text?: string;
+  errors?: CheckError[] | null;
   criteria?: Record<string, { score?: number; result?: string | number; max?: number; comment?: string }> | null;
   folder_id?: string | null;
   work_date?: string;

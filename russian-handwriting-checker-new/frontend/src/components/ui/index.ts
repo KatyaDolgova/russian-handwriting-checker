@@ -23,3 +23,4 @@ export * from './ui/SectionHeader';
 export * from './ui/WordCounter';
 export * from './ui/ToastItem';
 export * from './ui/Layout';
+export * from './ui/HighlightedText';

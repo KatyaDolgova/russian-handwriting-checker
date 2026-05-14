@@ -72,7 +72,10 @@ class CheckService:
         }
 
     def _parse(self, raw: str) -> dict:
-        match = re.search(r"\{[\s\S]*\}", raw)
+        # Strip markdown code fences (```json ... ``` or ``` ... ```)
+        cleaned = re.sub(r"^```(?:json)?\s*", "", raw.strip())
+        cleaned = re.sub(r"\s*```\s*$", "", cleaned)
+        match = re.search(r"\{[\s\S]*\}", cleaned)
         if not match:
             logger.warning("LLM response contains no JSON block")
             return {}
@@ -81,6 +84,7 @@ class CheckService:
         except json.JSONDecodeError as e:
             logger.warning(f"JSON parse error: {e}")
             fixed = re.sub(r",\s*([\]}])", r"\1", match.group(0))
+            fixed = re.sub(r"[\x00-\x1f\x7f]", " ", fixed)
             try:
                 return json.loads(fixed)
             except json.JSONDecodeError:
