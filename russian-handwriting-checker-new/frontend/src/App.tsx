@@ -7,6 +7,7 @@ import { CheckPage, FunctionsPage, HistoryPage, ProfilePage, StudentsPage } from
 export interface CheckState {
   editedText: string;
   sourceText: string;
+  streamText: string;
   result: Record<string, unknown> | null;
   filename: string;
   functionId: string;
@@ -16,6 +17,7 @@ export interface CheckState {
 const INIT_CHECK: CheckState = {
   editedText: '',
   sourceText: '',
+  streamText: '',
   result: null,
   filename: '',
   functionId: '',

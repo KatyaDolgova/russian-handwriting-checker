@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { CheckState } from '@/App';
 import { EmptyResult, StreamingPreview, TextEditor, UploadForm } from '@/components/ui';
 import { CheckPanel, ResultPanel } from '@/components/panels';
@@ -11,10 +11,9 @@ interface CheckPageProps {
 }
 
 export const CheckPage = ({ state, setState }: CheckPageProps) => {
-  const [streamText, setStreamText] = useState('');
   const [showSource, setShowSource] = useState(false);
   const [selectedFn, setSelectedFn] = useState<Fn | null>(null);
-  const { editedText, sourceText, result, filename, functionId, rightState } = state;
+  const { editedText, sourceText, streamText, result, filename, functionId, rightState } = state;
 
   const fnHint: string | null = (() => {
     if (!selectedFn) return null;
@@ -24,36 +23,27 @@ export const CheckPage = ({ state, setState }: CheckPageProps) => {
     return null;
   })();
 
-  useEffect(() => {
-    if (rightState === 'streaming') {
-      setState((prev) => ({ ...prev, rightState: 'empty' }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const handleUploadSuccess = (data: Record<string, unknown>) => {
-    setStreamText('');
     setState((prev) => ({
       ...prev,
       editedText: (data.text as string) || '',
       filename: (data.filename as string) || 'uploaded-file',
+      streamText: '',
       result: null,
       rightState: 'empty',
     }));
   };
 
   const handleStreamStart = () => {
-    setStreamText('');
-    setState((prev) => ({ ...prev, result: null, rightState: 'streaming' }));
+    setState((prev) => ({ ...prev, streamText: '', result: null, rightState: 'streaming' }));
   };
 
   const handleStreamCancel = () => {
-    setStreamText('');
-    setState((prev) => ({ ...prev, rightState: 'empty' }));
+    setState((prev) => ({ ...prev, streamText: '', rightState: 'empty' }));
   };
 
   const handleStreamChunk = (chunk: string) => {
-    setStreamText((prev) => prev + chunk);
+    setState((prev) => ({ ...prev, streamText: prev.streamText + chunk }));
   };
 
   const handleCheckComplete = (res: Record<string, unknown>, fnId: string) => {
