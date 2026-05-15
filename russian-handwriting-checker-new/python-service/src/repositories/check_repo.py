@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from src.models.check import Check
-from src.models.pupil import Pupil
+from src.models.student import Student
 
 
 class CheckRepository:
@@ -19,16 +19,16 @@ class CheckRepository:
 
     async def get_by_user(self, user_id: str) -> list[dict]:
         res = await self.db.execute(
-            select(Check, Pupil.name.label("pupil_name"))
-            .outerjoin(Pupil, Check.pupil_id == Pupil.id)
+            select(Check, Student.name.label("student_name"))
+            .outerjoin(Student, Check.student_id == Student.id)
             .where(Check.user_id == user_id)
             .order_by(Check.created_at.desc())
         )
         rows = res.all()
         result = []
-        for check, pupil_name in rows:
+        for check, student_name in rows:
             d = {col.key: getattr(check, col.key) for col in check.__table__.columns}
-            d["pupil_name"] = pupil_name
+            d["student_name"] = student_name
             result.append(d)
         return result
 

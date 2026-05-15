@@ -11,12 +11,6 @@ class CheckService:
         self.llm = llm
         self.function_repo = function_repo
 
-    async def run_check(self, text: str, function_id: str) -> dict:
-        messages, func = await self._build_messages(text, function_id)
-        raw = await self.llm.generate(messages)
-        logger.info(f"LLM raw response length: {len(raw)}")
-        return self._build_result(text, self._parse(raw), raw, getattr(func, "score_max", None), getattr(func, "min_words", None))
-
     async def stream_check(self, text: str, function_id: str) -> AsyncIterator[dict]:
         messages, func = await self._build_messages(text, function_id)
         fn_score_max = getattr(func, "score_max", None)
@@ -45,7 +39,8 @@ class CheckService:
         ]
         return messages, func
 
-    def _build_result(self, original_text: str, data: dict, raw_text: str = "", fn_score_max: int | None = None, fn_min_words: int | None = None) -> dict:
+    def _build_result(self, original_text: str, data: dict, raw_text: str = "",
+                      fn_score_max: int | None = None, fn_min_words: int | None = None) -> dict:
         is_generation = "corrected" not in data and "errors" not in data
         raw_score = data.get("score")
         if raw_score is None:
@@ -72,17 +67,17 @@ class CheckService:
         }
 
     def _parse(self, raw: str) -> dict:
-        # Strip markdown code fences (```json ... ``` or ``` ... ```)
+        # Модель иногда оборачивает ответ в ```json ... ```, убираем обёртку перед парсингом
         cleaned = re.sub(r"^```(?:json)?\s*", "", raw.strip())
         cleaned = re.sub(r"\s*```\s*$", "", cleaned)
         match = re.search(r"\{[\s\S]*\}", cleaned)
         if not match:
-            logger.warning("LLM response contains no JSON block")
+            logger.warning("В ответе модели не найден JSON")
             return {}
         try:
             return json.loads(match.group(0))
         except json.JSONDecodeError as e:
-            logger.warning(f"JSON parse error: {e}")
+            logger.warning(f"Ошибка разбора JSON: {e}")
             fixed = re.sub(r",\s*([\]}])", r"\1", match.group(0))
             fixed = re.sub(r"[\x00-\x1f\x7f]", " ", fixed)
             try:

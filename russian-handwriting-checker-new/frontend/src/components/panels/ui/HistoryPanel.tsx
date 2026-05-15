@@ -22,7 +22,7 @@ import {
   HighlightedText,
 } from '@/components/ui';
 import { formatDate } from '@/utils';
-import type { Folder, DateFilter, SortKey, CheckRecord, EditForm, Pupil } from '@/types';
+import type { Folder, DateFilter, SortKey, CheckRecord, EditForm, Student } from '@/types';
 import { EditPanel } from '@/components/panels';
 
 export const HistoryPanel = () => {
@@ -30,7 +30,7 @@ export const HistoryPanel = () => {
   const [checks, setChecks] = useState<CheckRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [folders, setFolders] = useState<Folder[]>([]);
-  const [pupils, setPupils] = useState<Pupil[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [showFolderMgr, setShowFolderMgr] = useState(false);
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -64,14 +64,14 @@ export const HistoryPanel = () => {
         .then((r) => r.data)
         .catch(() => []),
       api
-        .get('/api/pupils/')
+        .get('/api/students/')
         .then((r) => r.data)
         .catch(() => []),
     ])
-      .then(([ch, fl, pu]) => {
+      .then(([ch, fl, st]) => {
         setChecks(ch);
         setFolders(fl);
-        setPupils(pu);
+        setStudents(st);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -97,11 +97,11 @@ export const HistoryPanel = () => {
       ...(isPassFail ? { pass_fail: form.pass_fail } : { score: scoreNum, score_max: maxNum }),
       comment: form.comment,
       corrected_text: form.corrected_text,
-      pupil_id: form.pupil_id || null,
+      student_id: form.student_id || null,
       work_date: workDateIso,
       folder_id: form.folder_id || null,
     });
-    const selectedPupil = form.pupil_id ? pupils.find((p) => p.id === form.pupil_id) : null;
+    const selectedStudent = form.student_id ? students.find((s) => s.id === form.student_id) : null;
     setChecks((prev) =>
       prev.map((c) =>
         c.id === id
@@ -112,8 +112,8 @@ export const HistoryPanel = () => {
                 : { score: scoreIsEmpty ? c.score : scoreNum, score_max: maxNum }),
               comment: form.comment,
               corrected_text: form.corrected_text,
-              pupil_id: form.pupil_id || null,
-              pupil_name: selectedPupil?.name || null,
+              student_id: form.student_id || null,
+              student_name: selectedStudent?.name || null,
               work_date: workDateIso,
               folder_id: form.folder_id || null,
             }
@@ -170,7 +170,7 @@ export const HistoryPanel = () => {
         }
         if (
           q &&
-          !c.pupil_name?.toLowerCase().includes(q) &&
+          !c.student_name?.toLowerCase().includes(q) &&
           !c.filename?.toLowerCase().includes(q) &&
           !c.title?.toLowerCase().includes(q)
         )
@@ -191,7 +191,7 @@ export const HistoryPanel = () => {
 
   const stats = useMemo(() => {
     if (!filtered.length) return null;
-    const students = new Set(filtered.map((c) => c.pupil_id).filter(Boolean)).size;
+    const studentCount = new Set(filtered.map((c) => c.student_id).filter(Boolean)).size;
     const scored = filtered.filter(
       (c) => c.pass_fail == null && c.score != null && c.score_max != null,
     );
@@ -202,7 +202,7 @@ export const HistoryPanel = () => {
     const passFailPassed = passFails.filter((c) => c.pass_fail === 'зачёт').length;
     return {
       total: filtered.length,
-      students,
+      students: studentCount,
       avgPct,
       passFails: passFails.length,
       passFailPassed,
@@ -482,10 +482,10 @@ export const HistoryPanel = () => {
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        {check.pupil_name && (
+                        {check.student_name && (
                           <span className="flex items-center gap-1 text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
                             <User2 className="h-3 w-3" />
-                            {check.pupil_name}
+                            {check.student_name}
                           </span>
                         )}
                         {folderName && (
@@ -558,7 +558,7 @@ export const HistoryPanel = () => {
                     <EditPanel
                       check={check}
                       folders={folders}
-                      pupils={pupils}
+                      students={students}
                       onSave={handleSaveEdit}
                       onCancel={() => setEditingId(null)}
                     />

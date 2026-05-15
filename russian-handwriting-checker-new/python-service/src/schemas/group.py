@@ -7,6 +7,6 @@ class GroupCreate(BaseModel):
     description: Optional[str] = None
 
 
-class PupilGroupAssign(BaseModel):
-    pupil_id: str
+class StudentGroupAssign(BaseModel):
+    student_id: str
     group_id: Optional[str] = None

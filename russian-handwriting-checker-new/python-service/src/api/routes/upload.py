@@ -17,26 +17,16 @@ ocr_service = OCRService()
 @router.post("/")
 async def upload(file: UploadFile = File(...), background_tasks: BackgroundTasks = None):
     task_id = str(uuid4())
-
     path = TEMP_DIR / f"{task_id}_{file.filename}"
 
     with open(path, "wb") as f:
         shutil.copyfileobj(file.file, f)
 
-    # сохраняем статус
     tasks[task_id] = {"status": "processing"}
+    background_tasks.add_task(ocr_service.process_file, str(path), task_id)
 
-    # запускаем OCR в фоне
-    background_tasks.add_task(
-        ocr_service.process_file,
-        str(path),
-        task_id
-    )
+    return {"task_id": task_id, "status": "processing"}
 
-    return {
-        "task_id": task_id,
-        "status": "processing"
-    }
 
 @router.get("/{task_id}")
 async def get_status(task_id: str):

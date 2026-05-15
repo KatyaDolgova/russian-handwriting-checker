@@ -5,7 +5,7 @@ import type {
   CheckRecord,
   Folder,
   Group,
-  Pupil,
+  Student,
   PctFilter,
   StudentsSortKey as SortKey,
 } from '@/types';
@@ -28,7 +28,7 @@ interface StudentStats {
 export const StudentsPanel = () => {
   const [checks, setChecks] = useState<CheckRecord[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
-  const [pupilGroups, setPupilGroups] = useState<Map<string, string>>(new Map());
+  const [studentGroups, setStudentGroups] = useState<Map<string, string>>(new Map());
   const [folders, setFolders] = useState<Folder[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -53,7 +53,7 @@ export const StudentsPanel = () => {
         .then((r) => r.data)
         .catch(() => []),
       api
-        .get('/api/groups/pupils')
+        .get('/api/groups/students')
         .then((r) => r.data)
         .catch(() => []),
       api
@@ -65,8 +65,8 @@ export const StudentsPanel = () => {
         setChecks(ch);
         setGroups(gr);
         const map = new Map<string, string>();
-        for (const a of pg) map.set(a.pupil_id, a.group_id);
-        setPupilGroups(map);
+        for (const a of pg) map.set(a.student_id, a.group_id);
+        setStudentGroups(map);
         setFolders(fl);
       })
       .finally(() => setLoading(false));
@@ -83,7 +83,7 @@ export const StudentsPanel = () => {
   const handleDeleteGroup = async (id: string) => {
     await api.delete(`/api/groups/${id}`);
     setGroups((prev) => prev.filter((g) => g.id !== id));
-    setPupilGroups((prev) => {
+    setStudentGroups((prev) => {
       const next = new Map(prev);
       next.forEach((gid, name) => {
         if (gid === id) next.delete(name);
@@ -93,15 +93,15 @@ export const StudentsPanel = () => {
     if (filterGroup === id) setFilterGroup('all');
   };
 
-  const handleAssignGroup = async (pupilId: string, groupId: string) => {
-    await api.post('/api/groups/pupils/assign', {
-      pupil_id: pupilId,
+  const handleAssignGroup = async (studentId: string, groupId: string) => {
+    await api.post('/api/groups/students/assign', {
+      student_id: studentId,
       group_id: groupId || null,
     });
-    setPupilGroups((prev) => {
+    setStudentGroups((prev) => {
       const next = new Map(prev);
-      if (groupId) next.set(pupilId, groupId);
-      else next.delete(pupilId);
+      if (groupId) next.set(studentId, groupId);
+      else next.delete(studentId);
       return next;
     });
   };
@@ -145,14 +145,14 @@ export const StudentsPanel = () => {
   const students = useMemo<StudentStats[]>(() => {
     const map = new Map<string, CheckRecord[]>();
     for (const c of folderFilteredChecks) {
-      const key = c.pupil_id?.trim() || '\x00';
+      const key = c.student_id?.trim() || '\x00';
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(c);
     }
     const result: StudentStats[] = [];
     map.forEach((cs, key) => {
       if (key === '\x00') return;
-      const name = cs[0]?.pupil_name || key;
+      const name = cs[0]?.student_name || key;
       const scored = cs.filter((c) => c.pass_fail == null && c.score != null && c.score_max != null);
       const totalScore = scored.reduce((s, c) => s + (c.score ?? 0), 0);
       const totalMax = scored.reduce((s, c) => s + (c.score_max ?? 0), 0);
@@ -189,8 +189,8 @@ export const StudentsPanel = () => {
     let result = students;
 
     if (filterGroup !== 'all') {
-      if (filterGroup === '') result = result.filter((s) => !pupilGroups.has(s.id));
-      else result = result.filter((s) => pupilGroups.get(s.id) === filterGroup);
+      if (filterGroup === '') result = result.filter((s) => !studentGroups.has(s.id));
+      else result = result.filter((s) => studentGroups.get(s.id) === filterGroup);
     }
     if (search.trim()) {
       const q = search.toLowerCase().trim();
@@ -208,7 +208,7 @@ export const StudentsPanel = () => {
       if (sort === 'date_desc') return b.lastDate.localeCompare(a.lastDate);
       return 0;
     });
-  }, [students, filterGroup, pupilGroups, search, pctFilter, sort]);
+  }, [students, filterGroup, studentGroups, search, pctFilter, sort]);
 
   const overallAvg = useMemo(() => {
     const scored = displayedStudents
@@ -228,19 +228,19 @@ export const StudentsPanel = () => {
     else setSelectedNames(new Set(displayedStudents.map((s) => s.id)));
   };
 
-  const allPupils = useMemo<Pupil[]>(() => {
+  const allStudents = useMemo<Student[]>(() => {
     const seen = new Set<string>();
-    const result: Pupil[] = [];
+    const result: Student[] = [];
     for (const c of checks) {
-      if (c.pupil_id && c.pupil_name && !seen.has(c.pupil_id)) {
-        seen.add(c.pupil_id);
-        result.push({ id: c.pupil_id, name: c.pupil_name });
+      if (c.student_id && c.student_name && !seen.has(c.student_id)) {
+        seen.add(c.student_id);
+        result.push({ id: c.student_id, name: c.student_name });
       }
     }
     return result.sort((a, b) => a.name.localeCompare(b.name, 'ru'));
   }, [checks]);
 
-  const hasAnyStudents = checks.some((c) => c.pupil_id?.trim());
+  const hasAnyStudents = checks.some((c) => c.student_id?.trim());
 
   const hasActiveFilters =
     search.trim() !== '' || filterGroup !== 'all' || filterFolder !== 'all' || pctFilter !== 'all';
@@ -287,8 +287,8 @@ export const StudentsPanel = () => {
           <div className="border-t border-slate-100 px-4 py-4">
             <GroupSection
               groups={groups}
-              pupils={allPupils}
-              pupilGroups={pupilGroups}
+              students={allStudents}
+              studentGroups={studentGroups}
               onAddGroup={handleAddGroup}
               onUpdateGroup={handleUpdateGroup}
               onDeleteGroup={handleDeleteGroup}
@@ -457,7 +457,7 @@ export const StudentsPanel = () => {
           </div>
         ) : (
           displayedStudents.map((student) => {
-            const groupId = pupilGroups.get(student.id);
+            const groupId = studentGroups.get(student.id);
             const groupName = groupId ? groups.find((g) => g.id === groupId)?.name : null;
             const isExpanded = expandedId === student.id;
 

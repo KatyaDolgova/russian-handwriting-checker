@@ -1,7 +1,7 @@
 import { MONTHS_RU } from './constants';
 
 export const formatMonth = (raw: string | null) => {
-  if (!raw) return '—';
+  if (!raw) return '-';
   const [year, month] = raw.split('-');
   return `${MONTHS_RU[parseInt(month) - 1]} ${year}`;
 };

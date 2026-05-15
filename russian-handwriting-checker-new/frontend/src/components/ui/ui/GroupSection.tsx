@@ -1,21 +1,21 @@
-import type { Group, Pupil } from '@/types';
+import type { Group, Student } from '@/types';
 import { Users, X, Pencil, Trash2, AlertCircle, Plus } from 'lucide-react';
 import { useState } from 'react';
 
 interface GroupSectionProps {
   groups: Group[];
-  pupils: Pupil[];
-  pupilGroups: Map<string, string>;
+  students: Student[];
+  studentGroups: Map<string, string>;
   onAddGroup: (name: string) => Promise<void>;
   onUpdateGroup: (id: string, name: string) => Promise<void>;
   onDeleteGroup: (id: string) => Promise<void>;
-  onAssignGroup: (pupilId: string, groupId: string) => Promise<void>;
+  onAssignGroup: (studentId: string, groupId: string) => Promise<void>;
 }
 
 export const GroupSection = ({
   groups,
-  pupils,
-  pupilGroups,
+  students,
+  studentGroups,
   onAddGroup,
   onUpdateGroup,
   onDeleteGroup,
@@ -78,7 +78,7 @@ export const GroupSection = ({
                 <>
                   <span className="flex-1 text-sm text-slate-700">{g.name}</span>
                   <span className="text-xs text-slate-400">
-                    {[...pupilGroups.entries()].filter(([, gid]) => gid === g.id).length} уч.
+                    {[...studentGroups.entries()].filter(([, gid]) => gid === g.id).length} уч.
                   </span>
                   <button
                     onClick={() => {
@@ -144,17 +144,17 @@ export const GroupSection = ({
         </div>
       </div>
 
-      {pupils.length > 0 && groups.length > 0 && (
+      {students.length > 0 && groups.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
             Назначение учеников
           </p>
-          {pupils.map((pupil) => (
-            <div key={pupil.id} className="flex items-center gap-3">
-              <span className="flex-1 text-sm text-slate-700 truncate">{pupil.name}</span>
+          {students.map((student) => (
+            <div key={student.id} className="flex items-center gap-3">
+              <span className="flex-1 text-sm text-slate-700 truncate">{student.name}</span>
               <select
-                value={pupilGroups.get(pupil.id) || ''}
-                onChange={(e) => onAssignGroup(pupil.id, e.target.value)}
+                value={studentGroups.get(student.id) || ''}
+                onChange={(e) => onAssignGroup(student.id, e.target.value)}
                 className="cursor-pointer text-xs border border-slate-200 bg-white rounded-lg pl-2 pr-6 py-1.5 text-slate-600 focus:outline-none focus:border-indigo-400 max-w-[160px]"
               >
                 <option value="">Без группы</option>

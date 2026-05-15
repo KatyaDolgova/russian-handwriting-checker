@@ -9,11 +9,9 @@ from src.schemas.function import FunctionCreate
 router = APIRouter(prefix="/functions")
 
 
-class PublishRequest(BaseModel):
+class VersionRequest(BaseModel):
     change_note: Optional[str] = None
 
-class CreateVersionRequest(BaseModel):
-    change_note: Optional[str] = None
 
 @router.get("/")
 async def list_functions(
@@ -75,7 +73,7 @@ async def delete_function(
     return {"success": True}
 
 
-#  Галерея
+# Галерея
 
 @router.get("/gallery")
 async def gallery(
@@ -91,7 +89,7 @@ async def gallery(
 @router.post("/{function_id}/publish")
 async def publish_function(
     function_id: str,
-    body: PublishRequest = PublishRequest(),
+    body: VersionRequest = VersionRequest(),
     db=Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
@@ -144,7 +142,7 @@ async def function_versions(
 @router.post("/{function_id}/versions")
 async def create_version(
     function_id: str,
-    body: CreateVersionRequest = CreateVersionRequest(),
+    body: VersionRequest = VersionRequest(),
     db=Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):

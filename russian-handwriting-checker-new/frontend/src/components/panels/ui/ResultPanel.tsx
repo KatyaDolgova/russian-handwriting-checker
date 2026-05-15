@@ -13,7 +13,7 @@ import api from '@/api';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/ui/Toast';
 import { CopyBtn, ScoreBadge } from '@/components/ui';
-import type { Folder, Pupil } from '@/types';
+import type { Folder, Student } from '@/types';
 
 const CommentBlock = ({ text }: { text: string }) => {
   const [expanded, setExpanded] = useState(false);
@@ -96,10 +96,10 @@ export const ResultPanel = ({
   });
   const [editedComment, setEditedComment] = useState(result.comment || '');
   const [title, setTitle] = useState('');
-  const [pupilId, setPupilId] = useState('');
-  const [pupilName, setPupilName] = useState('');
-  const [pupils, setPupils] = useState<Pupil[]>([]);
-  const [showPupilDrop, setShowPupilDrop] = useState(false);
+  const [studentId, setStudentId] = useState('');
+  const [studentName, setStudentName] = useState('');
+  const [students, setStudents] = useState<Student[]>([]);
+  const [showStudentDrop, setShowStudentDrop] = useState(false);
   const [workDate, setWorkDate] = useState(() => {
     const d = new Date();
     const pad = (n: number) => String(n).padStart(2, '0');
@@ -123,8 +123,8 @@ export const ResultPanel = ({
       .catch(() => {});
     if (user) {
       api
-        .get('/api/pupils/')
-        .then((r) => setPupils(r.data as Pupil[]))
+        .get('/api/students/')
+        .then((r) => setStudents(r.data as Student[]))
         .catch(() => {});
     }
   }, [user]);
@@ -147,13 +147,13 @@ export const ResultPanel = ({
     setSaving(true);
     setSaved(false);
     try {
-      let resolvedPupilId = pupilId;
+      let resolvedStudentId = studentId;
 
-      if (!resolvedPupilId && pupilName.trim()) {
-        const res = await api.post('/api/pupils/', { name: pupilName.trim() });
-        resolvedPupilId = res.data.id;
-        setPupils((prev) => (prev.find((p) => p.id === res.data.id) ? prev : [...prev, res.data]));
-        setPupilId(res.data.id);
+      if (!resolvedStudentId && studentName.trim()) {
+        const res = await api.post('/api/students/', { name: studentName.trim() });
+        resolvedStudentId = res.data.id;
+        setStudents((prev) => (prev.find((s) => s.id === res.data.id) ? prev : [...prev, res.data]));
+        setStudentId(res.data.id);
       }
 
       const isPassFailResult = passFail != null;
@@ -171,7 +171,7 @@ export const ResultPanel = ({
         score_max: hasScore ? parseFloat(scoreMax) || 5 : null,
         comment: editedComment,
         function_id: functionId,
-        pupil_id: resolvedPupilId || undefined,
+        student_id: resolvedStudentId || undefined,
         folder_id: folderId || undefined,
         work_date: new Date(workDate).toISOString(),
       });
@@ -191,7 +191,7 @@ export const ResultPanel = ({
 <html lang="ru">
 <head>
   <meta charset="UTF-8"/>
-  <title>Отчёт: ${title || pupilName || filename}</title>
+  <title>Отчёт: ${title || studentName || filename}</title>
   <style>
     body { font-family: 'Times New Roman', serif; max-width: 800px; margin: 40px auto; color: #111; font-size: 14px; line-height: 1.6; }
     h1 { font-size: 20px; border-bottom: 2px solid #333; padding-bottom: 8px; }
@@ -212,7 +212,7 @@ export const ResultPanel = ({
 <body>
   <h1>${title || 'Проверка работы'}</h1>
   <div class="meta">
-    ${pupilName ? `<strong>Ученик:</strong> ${pupilName} &nbsp;|&nbsp;` : ''}
+    ${studentName ? `<strong>Ученик:</strong> ${studentName} &nbsp;|&nbsp;` : ''}
     <strong>Файл:</strong> ${filename} &nbsp;|&nbsp;
     <strong>Дата:</strong> ${new Date().toLocaleDateString('ru-RU')}
   </div>
@@ -292,36 +292,36 @@ export const ResultPanel = ({
                 type="text"
                 autoComplete="off"
                 placeholder="Имя ученика (необязательно)"
-                value={pupilName}
+                value={studentName}
                 onChange={(e) => {
-                  setPupilName(e.target.value);
-                  setPupilId('');
+                  setStudentName(e.target.value);
+                  setStudentId('');
                 }}
-                onFocus={() => setShowPupilDrop(true)}
-                onBlur={() => setTimeout(() => setShowPupilDrop(false), 150)}
+                onFocus={() => setShowStudentDrop(true)}
+                onBlur={() => setTimeout(() => setShowStudentDrop(false), 150)}
                 className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 focus:outline-none cursor-text"
               />
             </div>
-            {showPupilDrop && pupils.length > 0 && (
+            {showStudentDrop && students.length > 0 && (
               <div className="absolute left-0 right-0 top-full mt-1 z-20 bg-white border border-slate-200 rounded-xl shadow-lg max-h-40 overflow-y-auto">
-                {pupils
+                {students
                   .filter(
-                    (p) =>
-                      !pupilName.trim() || p.name.toLowerCase().includes(pupilName.toLowerCase()),
+                    (s) =>
+                      !studentName.trim() || s.name.toLowerCase().includes(studentName.toLowerCase()),
                   )
-                  .map((p) => (
+                  .map((s) => (
                     <button
-                      key={p.id}
+                      key={s.id}
                       type="button"
                       onMouseDown={() => {
-                        setPupilId(p.id);
-                        setPupilName(p.name);
-                        setShowPupilDrop(false);
+                        setStudentId(s.id);
+                        setStudentName(s.name);
+                        setShowStudentDrop(false);
                       }}
                       className="cursor-pointer w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 flex items-center gap-2 first:rounded-t-xl last:rounded-b-xl"
                     >
                       <User2 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                      {p.name}
+                      {s.name}
                     </button>
                   ))}
               </div>

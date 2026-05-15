@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from src.api.deps import get_db, get_current_user
 from src.repositories.group_repo import GroupRepository
-from src.schemas.group import GroupCreate, PupilGroupAssign
+from src.schemas.group import GroupCreate, StudentGroupAssign
 
 router = APIRouter(prefix="/groups")
 
@@ -45,18 +45,18 @@ async def delete_group(
     return {"success": True}
 
 
-@router.get("/pupils")
-async def get_pupil_groups(db=Depends(get_db), current_user=Depends(get_current_user)):
-    return await GroupRepository(db).get_pupil_groups(current_user["user_id"])
+@router.get("/students")
+async def get_student_groups(db=Depends(get_db), current_user=Depends(get_current_user)):
+    return await GroupRepository(db).get_student_groups(current_user["user_id"])
 
 
-@router.post("/pupils/assign")
-async def assign_pupil(
-    data: PupilGroupAssign,
+@router.post("/students/assign")
+async def assign_student(
+    data: StudentGroupAssign,
     db=Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    await GroupRepository(db).set_pupil_group(
-        current_user["user_id"], data.pupil_id, data.group_id
+    await GroupRepository(db).set_student_group(
+        current_user["user_id"], data.student_id, data.group_id
     )
     return {"success": True}

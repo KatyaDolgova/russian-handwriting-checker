@@ -29,14 +29,13 @@ async def get_current_user(
     except HTTPException:
         raise
     except Exception as e:
-        logger.warning(f"Auth validation failed: {e}")
+        logger.warning(f"Ошибка проверки токена: {e}")
         raise HTTPException(status_code=401, detail="Недействительный или просроченный токен")
 
 
 async def get_optional_user_id(
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> str | None:
-    """Возвращает user_id если токен валидный, иначе None (не бросает ошибку)."""
     if not credentials or supabase is None:
         return None
     try:

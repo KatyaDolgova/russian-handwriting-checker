@@ -61,7 +61,7 @@ class FunctionRepository:
             select(Function, UserProfile.display_name, max_ver_subq.c.max_ver)
             .outerjoin(UserProfile, UserProfile.user_id == Function.user_id)
             .outerjoin(max_ver_subq, max_ver_subq.c.function_id == Function.id)
-            .where(Function.is_published == True)  # noqa: E712
+            .where(Function.is_published.is_(True))
         )
         if user_id:
             q = q.where(Function.user_id != user_id)
@@ -121,7 +121,6 @@ class FunctionRepository:
         return obj
 
     async def republish(self, function_id: str, change_note: str | None = None) -> Function:
-        """Публикует новую версию уже опубликованной функции после её редактирования."""
         obj = await self.get(function_id)
         if not obj.is_published:
             return obj

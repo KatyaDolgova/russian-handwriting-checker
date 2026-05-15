@@ -1,4 +1,4 @@
-import type { CheckRecord, EditForm, Folder, Pupil } from '@/types';
+import type { CheckRecord, EditForm, Folder, Student } from '@/types';
 import { toLocalDatetime } from '@/utils';
 import { X, Loader2 } from 'lucide-react';
 import { useState } from 'react';
@@ -6,19 +6,19 @@ import { useState } from 'react';
 interface EditPanelProps {
   check: CheckRecord;
   folders: Folder[];
-  pupils: Pupil[];
+  students: Student[];
   onSave: (id: string, form: EditForm) => Promise<void>;
   onCancel: () => void;
 }
 
-export const EditPanel = ({ check, folders, pupils, onSave, onCancel }: EditPanelProps) => {
+export const EditPanel = ({ check, folders, students, onSave, onCancel }: EditPanelProps) => {
   const [form, setForm] = useState<EditForm>(() => ({
     pass_fail: check.pass_fail ?? undefined,
     score: check.score != null ? String(check.score) : '',
     scoreMax: String(check.score_max ?? 5),
     comment: check.comment || '',
     corrected_text: check.corrected_text || '',
-    pupil_id: check.pupil_id || '',
+    student_id: check.student_id || '',
     workDate: toLocalDatetime(check.work_date || check.created_at),
     folder_id: check.folder_id || '',
   }));
@@ -39,14 +39,14 @@ export const EditPanel = ({ check, folders, pupils, onSave, onCancel }: EditPane
         <div>
           <label className="block text-xs font-medium text-slate-500 mb-1">Ученик</label>
           <select
-            value={form.pupil_id}
-            onChange={(e) => setForm((f) => ({ ...f, pupil_id: e.target.value }))}
+            value={form.student_id}
+            onChange={(e) => setForm((f) => ({ ...f, student_id: e.target.value }))}
             className="cursor-pointer w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400 bg-white"
           >
             <option value="">Без ученика</option>
-            {pupils.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
+            {students.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
               </option>
             ))}
           </select>
