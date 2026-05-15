@@ -27,42 +27,11 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup():
     async with engine.begin() as conn:
-        await conn.execute(text("""
-            DO $$ BEGIN
-              IF EXISTS (SELECT 1 FROM pg_tables WHERE tablename='pupils')
-                 AND NOT EXISTS (SELECT 1 FROM pg_tables WHERE tablename='students') THEN
-                ALTER TABLE pupils RENAME TO students;
-              END IF;
-            END $$;
-        """))
-        await conn.execute(text("""
-            DO $$ BEGIN
-              IF EXISTS (SELECT 1 FROM pg_tables WHERE tablename='pupil_groups')
-                 AND NOT EXISTS (SELECT 1 FROM pg_tables WHERE tablename='student_groups') THEN
-                ALTER TABLE pupil_groups RENAME TO student_groups;
-              END IF;
-            END $$;
-        """))
-        await conn.run_sync(Base.metadata.create_all)
         await conn.execute(text("ALTER TABLE checks ADD COLUMN IF NOT EXISTS title VARCHAR"))
         await conn.execute(text("ALTER TABLE checks ALTER COLUMN score_max DROP NOT NULL"))
         await conn.execute(text("ALTER TABLE functions ADD COLUMN IF NOT EXISTS user_id VARCHAR"))
         await conn.execute(text("ALTER TABLE functions ADD COLUMN IF NOT EXISTS is_published BOOLEAN DEFAULT FALSE"))
         await conn.execute(text("ALTER TABLE functions ADD COLUMN IF NOT EXISTS original_function_id VARCHAR"))
-        await conn.execute(text("""
-            DO $$ BEGIN
-              IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='checks' AND column_name='pupil_id') THEN
-                ALTER TABLE checks RENAME COLUMN pupil_id TO student_id;
-              END IF;
-            END $$;
-        """))
-        await conn.execute(text("""
-            DO $$ BEGIN
-              IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='student_groups' AND column_name='pupil_id') THEN
-                ALTER TABLE student_groups RENAME COLUMN pupil_id TO student_id;
-              END IF;
-            END $$;
-        """))
     await seed_default_functions()
 
 app.include_router(auth.router, prefix="/api")
