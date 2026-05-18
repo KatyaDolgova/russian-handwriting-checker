@@ -18,6 +18,7 @@ def _make_service(db) -> CheckService:
     return CheckService(LLMService(), FunctionRepository(db))
 
 
+#оборачивает стрим в SSE-формат (data: {...}\n\n) и возвращает StreamingResponse
 @router.post("/stream")
 async def stream_check(request: CheckRequest, db=Depends(get_db)):
     service = _make_service(db)

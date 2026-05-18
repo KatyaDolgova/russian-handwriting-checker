@@ -13,7 +13,7 @@ async def get_db():
     async with SessionLocal() as session:
         yield session
 
-
+#извлекает токен из заголовка, проверяет через Supabase, возвращает user_id
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> dict:

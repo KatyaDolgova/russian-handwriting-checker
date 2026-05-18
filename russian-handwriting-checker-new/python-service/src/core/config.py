@@ -7,7 +7,6 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434/v1"
     openai_api_key: str = "ollama"  # для Ollama не нужен; для Groq/OpenAI - реальный ключ
 
-    # Database (SQLite по умолчанию; замени на Supabase PostgreSQL в .env)
     database_url: str = "sqlite+aiosqlite:///./app.db"
 
     # Supabase Auth
