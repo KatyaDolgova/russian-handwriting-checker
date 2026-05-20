@@ -135,7 +135,7 @@ describe('AuthModal — аутентификация', () => {
 
   it('показывает ошибку при неудачном входе', async () => {
     const user = userEvent.setup();
-    mockLogin.mockRejectedValue({ message: 'Неверный пароль' });
+    mockLogin.mockRejectedValue({ response: { status: 401, data: { detail: 'Неверный пароль' } } });
     renderModal();
     await user.type(screen.getByPlaceholderText('teacher@school.ru'), 'test@test.com');
     await user.type(screen.getByPlaceholderText('Минимум 6 символов'), 'wrongpass');

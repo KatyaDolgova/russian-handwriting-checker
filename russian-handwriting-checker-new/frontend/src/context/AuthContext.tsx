@@ -11,6 +11,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
+  loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<string>;
   logout: () => void;
@@ -22,25 +23,32 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('access_token'));
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(() => !!localStorage.getItem('access_token'));
 
   const logout = () => {
     localStorage.removeItem('access_token');
     setToken(null);
     setUser(null);
+    setLoading(false);
   };
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     api
       .get('/api/auth/me')
-      .then((res) =>
+      .then((res) => {
         setUser({
           user_id: res.data.user_id,
           email: res.data.email,
           display_name: res.data.display_name ?? null,
-        }),
-      )
-      .catch(() => logout());
+        });
+      })
+      .catch(() => logout())
+      .finally(() => setLoading(false));
   }, [token]);
 
   const login = async (email: string, password: string) => {
@@ -64,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, updateDisplayName }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateDisplayName }}>
       {children}
     </AuthContext.Provider>
   );

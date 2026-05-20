@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, LogIn, UserPlus, Loader2, BookOpen, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { getErrorMessage } from '@/utils/errorMessage';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -40,8 +41,8 @@ export const AuthModal = ({ onClose }: AuthModalProps) => {
           onClose();
         }
       }
-    } catch (e: any) {
-      setError(e?.response?.data?.detail || e?.message || 'Произошла ошибка');
+    } catch (e) {
+      setError(getErrorMessage(e));
     } finally {
       setLoading(false);
     }

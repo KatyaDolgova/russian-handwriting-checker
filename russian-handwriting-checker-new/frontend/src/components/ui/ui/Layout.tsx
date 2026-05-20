@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { AuthModal } from '@/components/modals';
 
 export const Layout = ({ children }: { children: ReactNode }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
 
   const navCls = ({ isActive }: { isActive: boolean }) =>
@@ -32,13 +32,13 @@ export const Layout = ({ children }: { children: ReactNode }) => {
               <FileCheck className="h-4 w-4" />
               Проверка
             </NavLink>
-            {user && (
+            {!loading && user && (
               <NavLink to="/history" className={navCls}>
                 <History className="h-4 w-4" />
                 История
               </NavLink>
             )}
-            {user && (
+            {!loading && user && (
               <NavLink to="/students" className={navCls}>
                 <Users className="h-4 w-4" />
                 Ученики
@@ -51,7 +51,9 @@ export const Layout = ({ children }: { children: ReactNode }) => {
           </nav>
 
           <div className="flex items-center gap-3">
-            {user ? (
+            {loading ? (
+              <div className="shimmer w-24 h-8 rounded-lg" />
+            ) : user ? (
               <>
                 <NavLink
                   to="/profile"
