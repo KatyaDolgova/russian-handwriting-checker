@@ -14,7 +14,6 @@ export const Layout = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (authError) {
       toast.error(authError);
-      setShowAuth(true);
     }
   }, [authError]);
 

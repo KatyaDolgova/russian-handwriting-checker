@@ -20,6 +20,7 @@ import {
   ConfirmDelete,
   FolderSection,
   HighlightedText,
+  FilterDropdown,
 } from '@/components/ui';
 import { formatDate } from '@/utils';
 import type { Folder, DateFilter, SortKey, CheckRecord, EditForm, Student } from '@/types';
@@ -384,31 +385,28 @@ export const HistoryPanel = () => {
         )}
 
         {folders.length > 0 && (
-          <select
+          <FilterDropdown
             value={filterFolder}
-            onChange={(e) => setFilterFolder(e.target.value)}
-            className="cursor-pointer text-sm border border-slate-200 bg-white rounded-xl pl-3 pr-8 py-2 text-slate-600 focus:outline-none focus:border-indigo-400"
-          >
-            <option value="all">Все папки</option>
-            <option value="">Без папки</option>
-            {folders.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
+            onChange={setFilterFolder}
+            icon={<FolderOpen className="h-3.5 w-3.5" />}
+            options={[
+              { value: 'all', label: 'Все папки' },
+              { value: '', label: 'Без папки' },
+              ...folders.map((f) => ({ value: f.id, label: f.name })),
+            ]}
+          />
         )}
 
-        <select
+        <FilterDropdown
           value={sort}
-          onChange={(e) => setSort(e.target.value as SortKey)}
-          className="cursor-pointer text-sm border border-slate-200 bg-white rounded-xl pl-3 pr-8 py-2 text-slate-600 focus:outline-none focus:border-indigo-400"
-        >
-          <option value="date_desc">По дате ↓</option>
-          <option value="date_asc">По дате ↑</option>
-          <option value="score_desc">По оценке ↓</option>
-          <option value="score_asc">По оценке ↑</option>
-        </select>
+          onChange={(v) => setSort(v as SortKey)}
+          options={[
+            { value: 'date_desc', label: 'По дате ↓' },
+            { value: 'date_asc', label: 'По дате ↑' },
+            { value: 'score_desc', label: 'По оценке ↓' },
+            { value: 'score_asc', label: 'По оценке ↑' },
+          ]}
+        />
 
         {hasActiveFilters && (
           <button

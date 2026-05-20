@@ -24,3 +24,4 @@ export * from './ui/WordCounter';
 export * from './ui/ToastItem';
 export * from './ui/Layout';
 export * from './ui/HighlightedText';
+export * from './ui/FilterDropdown';

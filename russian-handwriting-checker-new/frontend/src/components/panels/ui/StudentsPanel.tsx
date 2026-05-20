@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { User2, Loader2, ChevronDown, ChevronUp, Users, Search, X } from 'lucide-react';
+import { User2, Loader2, ChevronDown, ChevronUp, Users, Search, X, FolderOpen } from 'lucide-react';
 import api from '@/api';
 import type {
   CheckRecord,
@@ -10,7 +10,7 @@ import type {
   StudentsSortKey as SortKey,
 } from '@/types';
 import { formatDate, scoreColor } from '@/utils';
-import { ScoreBar, CheckMini, GroupSection } from '@/components/ui';
+import { ScoreBar, CheckMini, GroupSection, FilterDropdown } from '@/components/ui';
 
 interface StudentStats {
   id: string;
@@ -317,17 +317,17 @@ export const StudentsPanel = () => {
             </button>
           )}
         </div>
-        <select
+        <FilterDropdown
           value={sort}
-          onChange={(e) => setSort(e.target.value as SortKey)}
-          className="cursor-pointer text-sm border border-slate-200 bg-white rounded-xl pl-3 pr-8 py-2 text-slate-600 focus:outline-none focus:border-indigo-400"
-        >
-          <option value="works_desc">По кол-ву работ</option>
-          <option value="pct_desc">По % убыванию</option>
-          <option value="pct_asc">По % возрастанию</option>
-          <option value="name_asc">По имени А–Я</option>
-          <option value="date_desc">По дате</option>
-        </select>
+          onChange={(v) => setSort(v as SortKey)}
+          options={[
+            { value: 'works_desc', label: 'По кол-ву работ' },
+            { value: 'pct_desc', label: 'По % убыванию' },
+            { value: 'pct_asc', label: 'По % возрастанию' },
+            { value: 'name_asc', label: 'По имени А–Я' },
+            { value: 'date_desc', label: 'По дате' },
+          ]}
+        />
       </div>
 
       {/* Filters row */}
@@ -352,48 +352,32 @@ export const StudentsPanel = () => {
           ))}
         </div>
 
-        {/* Group filter */}
+        {/* Group filter dropdown */}
         {groups.length > 0 && (
-          <div className="flex bg-white border border-slate-200 rounded-xl p-0.5 gap-0.5 flex-wrap">
-            <button
-              onClick={() => setFilterGroup('all')}
-              className={`cursor-pointer text-xs px-3 py-1.5 rounded-lg transition-colors font-medium ${filterGroup === 'all' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              Все группы
-            </button>
-            <button
-              onClick={() => setFilterGroup('')}
-              className={`cursor-pointer text-xs px-3 py-1.5 rounded-lg transition-colors font-medium ${filterGroup === '' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              Без группы
-            </button>
-            {groups.map((g) => (
-              <button
-                key={g.id}
-                onClick={() => setFilterGroup(g.id)}
-                className={`cursor-pointer text-xs px-3 py-1.5 rounded-lg transition-colors font-medium ${filterGroup === g.id ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                {g.name}
-              </button>
-            ))}
-          </div>
+          <FilterDropdown
+            value={filterGroup}
+            onChange={setFilterGroup}
+            icon={<Users className="h-3.5 w-3.5" />}
+            options={[
+              { value: 'all', label: 'Все группы' },
+              { value: '', label: 'Без группы' },
+              ...groups.map((g) => ({ value: g.id, label: g.name })),
+            ]}
+          />
         )}
 
         {/* Folder filter */}
         {folders.length > 0 && (
-          <select
+          <FilterDropdown
             value={filterFolder}
-            onChange={(e) => setFilterFolder(e.target.value)}
-            className="cursor-pointer text-sm border border-slate-200 bg-white rounded-xl pl-3 pr-8 py-2 text-slate-600 focus:outline-none focus:border-indigo-400"
-          >
-            <option value="all">Все папки</option>
-            <option value="">Без папки</option>
-            {folders.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
+            onChange={setFilterFolder}
+            icon={<FolderOpen className="h-3.5 w-3.5" />}
+            options={[
+              { value: 'all', label: 'Все папки' },
+              { value: '', label: 'Без папки' },
+              ...folders.map((f) => ({ value: f.id, label: f.name })),
+            ]}
+          />
         )}
 
         {hasActiveFilters && (
