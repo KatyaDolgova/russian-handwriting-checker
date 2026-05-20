@@ -30,7 +30,7 @@ export const GalleryCard = ({ fn, isCopied, isCopying, onCopy }: GalleryCardProp
 
             <div className="flex items-center gap-1.5 text-xs text-slate-400">
               <User2 className="h-3 w-3 shrink-0" />
-              <span>{fn.author_display_name}</span>
+              <span>{fn.author_display_name || fn.author_email || 'Аноним'}</span>
             </div>
           </div>
 

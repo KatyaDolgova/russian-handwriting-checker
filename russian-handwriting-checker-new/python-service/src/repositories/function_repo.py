@@ -60,7 +60,7 @@ class FunctionRepository:
         )
 
         q = (
-            select(Function, UserProfile.display_name, max_ver_subq.c.max_ver)
+            select(Function, UserProfile.display_name, UserProfile.email, max_ver_subq.c.max_ver)
             .outerjoin(UserProfile, UserProfile.user_id == Function.user_id)
             .outerjoin(max_ver_subq, max_ver_subq.c.function_id == Function.id)
             .where(Function.is_published.is_(True))
@@ -86,12 +86,13 @@ class FunctionRepository:
                 "description": fn.description,
                 "system_prompt": fn.system_prompt,
                 "user_template": fn.user_template or "",
-                "author_display_name": display_name or "Аноним",
+                "author_display_name": display_name or None,
+                "author_email": email or None,
                 "author_user_id": fn.user_id,
                 "version_number": max_ver or 1,
                 "is_published": fn.is_published,
             }
-            for fn, display_name, max_ver in rows
+            for fn, display_name, email, max_ver in rows
         ]
 
     # Публикация

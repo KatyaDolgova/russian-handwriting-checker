@@ -113,7 +113,9 @@ async def me(
 ):
     user_id = current_user["user_id"]
 
-    profile = await UserProfileRepository(db).get(user_id)
+    profile = await UserProfileRepository(db).upsert(
+        user_id, {"email": current_user.get("email")}
+    )
 
     total_q = await db.execute(
         select(func.count(Check.id)).where(Check.user_id == user_id)

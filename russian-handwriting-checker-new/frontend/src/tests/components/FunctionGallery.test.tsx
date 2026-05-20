@@ -22,6 +22,7 @@ const GALLERY_FN = {
   system_prompt: 'Ты учитель',
   user_template: 'Проверь: {text}',
   author_display_name: 'Иван Иванов',
+  author_email: 'ivan@test.com',
   author_user_id: 'author-uid',
   version_number: 2,
 };

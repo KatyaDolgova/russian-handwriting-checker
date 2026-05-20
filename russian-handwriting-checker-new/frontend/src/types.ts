@@ -64,7 +64,8 @@ export interface GalleryFn {
   description: string;
   system_prompt: string;
   user_template: string;
-  author_display_name: string;
+  author_display_name: string | null;
+  author_email: string | null;
   author_user_id: string | null;
   version_number: number;
 }

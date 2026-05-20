@@ -12,6 +12,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
+  authError: string | null;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<string>;
   logout: () => void;
@@ -24,6 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('access_token'));
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(() => !!localStorage.getItem('access_token'));
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const logout = () => {
     localStorage.removeItem('access_token');
@@ -38,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     setLoading(true);
+    setAuthError(null);
     api
       .get('/api/auth/me')
       .then((res) => {
@@ -47,7 +50,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           display_name: res.data.display_name ?? null,
         });
       })
-      .catch(() => logout())
+      .catch((e) => {
+        const status = e?.response?.status;
+        if (status === 401) {
+          logout();
+        } else {
+          logout();
+          setAuthError(
+            status >= 500
+              ? 'Сервер недоступен. Попробуйте войти позже.'
+              : 'Не удалось загрузить данные аккаунта. Попробуйте снова.',
+          );
+        }
+      })
       .finally(() => setLoading(false));
   }, [token]);
 
@@ -72,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateDisplayName }}>
+    <AuthContext.Provider value={{ user, token, loading, authError, login, register, logout, updateDisplayName }}>
       {children}
     </AuthContext.Provider>
   );
