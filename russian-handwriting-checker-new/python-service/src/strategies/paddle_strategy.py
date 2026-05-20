@@ -5,6 +5,9 @@ from paddleocr import PaddleOCR
 from .base_strategy import OCRStrategy, OcrResult
 from ..utils.image_processing import enhance_for_paddle
 from ..utils.text_processing import fix_russian_handwriting, clean_text
+from ..core.logger import get_logger
+
+logger = get_logger("paddle_strategy")
 
 
 class PaddleStrategy(OCRStrategy):
@@ -18,7 +21,8 @@ class PaddleStrategy(OCRStrategy):
             det=True,
             rec=True,
             use_gpu=False,
-            show_log=False
+            show_log=False,
+            enable_mkldnn=False,
         )
         self.name = "PaddleOCR"
 
@@ -75,6 +79,7 @@ class PaddleStrategy(OCRStrategy):
             )
 
         except Exception as e:
+            logger.error("PaddleOCR ошибка: %s", e)
             processing_time = time.time() - start_time
             return OcrResult(
                 text="",

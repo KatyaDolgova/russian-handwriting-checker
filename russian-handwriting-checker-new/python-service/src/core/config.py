@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     supabase_anon_key: str = ""
     supabase_jwt_secret: str = ""
 
+    # OCR — облачные провайдеры (опционально)
+    yandex_vision_api_key: str = ""
+
     class Config:
         env_file = ".env"
         extra = "ignore"

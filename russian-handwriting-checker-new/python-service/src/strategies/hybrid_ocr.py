@@ -1,9 +1,9 @@
 import time
 from pathlib import Path
-from typing import Dict, Any
 
-from .paddle_strategy import PaddleStrategy
 from .tesseract_strategy import TesseractStrategy
+from .paddle_strategy import PaddleStrategy
+from .yandex_vision_strategy import YandexVisionStrategy
 from ..utils.text_processing import fix_russian_handwriting, clean_text
 from ..core.logger import get_logger
 
@@ -11,38 +11,40 @@ logger = get_logger("hybrid_ocr")
 
 
 class HybridOCR:
-    """Гибридный OCR: PaddleOCR + Tesseract с выбором лучшего результата"""
+    """Гибридный OCR: выбирает лучший результат среди доступных движков"""
 
     def __init__(self):
-        self.paddle = PaddleStrategy()
         self.tesseract = TesseractStrategy()
+        self.paddle = PaddleStrategy()
+        self.yandex = YandexVisionStrategy()
 
     def process(self, image_path: str) -> str:
-        """Синхронная обработка изображения"""
         logger.info("Обработка: %s", Path(image_path).name)
-
         start_time = time.time()
 
-        try:
-            paddle_result = self.paddle.recognize(image_path)
-            tess_result = self.tesseract.recognize(image_path)
+        candidates = []
 
-            # Выбираем лучший по уверенности
-            if paddle_result.confidence >= tess_result.confidence:
-                best = paddle_result
-                source = "PaddleOCR"
-            else:
-                best = tess_result
-                source = "Tesseract"
+        for strategy in [self.yandex, self.paddle, self.tesseract]:
+            try:
+                result = strategy.recognize(image_path)
+                if result.text:
+                    candidates.append((result, strategy.get_name()))
+                    logger.info(
+                        "%s | уверенность: %.3f | длина: %d",
+                        strategy.get_name(), result.confidence, len(result.text),
+                    )
+            except Exception as e:
+                logger.warning("%s упал: %s", strategy.get_name(), e)
 
-            logger.info("Выбран %s | Уверенность: %.3f | Длина текста: %d", source, best.confidence, len(best.text))
+        if not candidates:
+            return "[Ошибка OCR] Ни один движок не смог распознать текст"
 
-            return best.text
-
-        except Exception as e:
-            logger.error("Ошибка: %s", e, exc_info=True)
-            return f"[Ошибка OCR] Не удалось распознать текст из файла {Path(image_path).name}"
+        best_result, best_name = max(candidates, key=lambda x: x[0].confidence)
+        logger.info(
+            "Победитель: %s | уверенность: %.3f | время: %.2f с",
+            best_name, best_result.confidence, time.time() - start_time,
+        )
+        return best_result.text
 
     async def process_async(self, image_path: str) -> str:
-        """Асинхронная версия для FastAPI"""
         return self.process(image_path)
