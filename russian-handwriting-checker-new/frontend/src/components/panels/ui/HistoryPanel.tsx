@@ -641,22 +641,22 @@ export const HistoryPanel = () => {
       </div>
 
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 whitespace-nowrap">
-          <span className="text-sm font-medium text-slate-200">{selectedIds.size} выбрано</span>
-          <div className="w-px h-4 bg-slate-700" />
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-white text-slate-700 px-5 py-3 rounded-2xl shadow-xl border border-indigo-100 whitespace-nowrap">
+          <span className="text-sm font-semibold text-indigo-600">{selectedIds.size} выбрано</span>
+          <div className="w-px h-4 bg-slate-200" />
           <button
             onClick={() => setSelectedIds(new Set())}
-            className="cursor-pointer text-xs text-slate-400 hover:text-white transition-colors"
+            className="cursor-pointer text-xs text-slate-400 hover:text-slate-700 transition-colors"
           >
             Снять
           </button>
           {folders.length > 0 && (
             <>
-              <div className="w-px h-4 bg-slate-700" />
+              <div className="w-px h-4 bg-slate-200" />
               <select
                 value={bulkFolderId}
                 onChange={(e) => setBulkFolderId(e.target.value)}
-                className="cursor-pointer text-xs bg-slate-800 border border-slate-700 text-slate-300 rounded-lg pl-2 pr-6 py-1.5 focus:outline-none"
+                className="cursor-pointer text-xs bg-slate-50 border border-slate-200 text-slate-600 rounded-lg pl-2 pr-6 py-1.5 focus:outline-none focus:border-indigo-400"
               >
                 <option value="">Папка...</option>
                 {folders.map((f) => (
@@ -668,31 +668,31 @@ export const HistoryPanel = () => {
               <button
                 onClick={handleBulkMoveToFolder}
                 disabled={!bulkFolderId}
-                className="cursor-pointer text-xs bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-default px-3 py-1.5 rounded-lg font-medium transition-colors"
+                className="cursor-pointer text-xs bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-default text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
               >
                 В папку
               </button>
               <button
                 onClick={handleBulkRemoveFromFolder}
-                className="cursor-pointer text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg font-medium transition-colors"
+                className="cursor-pointer text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg font-medium transition-colors"
               >
                 Убрать из папки
               </button>
             </>
           )}
-          <div className="w-px h-4 bg-slate-700" />
+          <div className="w-px h-4 bg-slate-200" />
           {bulkDeleteConfirm ? (
             <>
-              <span className="text-xs text-red-400">Удалить {selectedIds.size}?</span>
+              <span className="text-xs text-red-500">Удалить {selectedIds.size}?</span>
               <button
                 onClick={handleBulkDelete}
-                className="cursor-pointer text-xs bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-lg font-medium transition-colors"
+                className="cursor-pointer text-xs bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
               >
                 Да
               </button>
               <button
                 onClick={() => setBulkDeleteConfirm(false)}
-                className="cursor-pointer text-xs text-slate-400 hover:text-white transition-colors px-2"
+                className="cursor-pointer text-xs text-slate-400 hover:text-slate-700 transition-colors px-2"
               >
                 Нет
               </button>
@@ -700,7 +700,7 @@ export const HistoryPanel = () => {
           ) : (
             <button
               onClick={() => setBulkDeleteConfirm(true)}
-              className="cursor-pointer text-xs bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-lg font-medium transition-colors"
+              className="cursor-pointer text-xs bg-red-50 hover:bg-red-100 text-red-500 px-3 py-1.5 rounded-lg font-medium transition-colors"
             >
               Удалить
             </button>

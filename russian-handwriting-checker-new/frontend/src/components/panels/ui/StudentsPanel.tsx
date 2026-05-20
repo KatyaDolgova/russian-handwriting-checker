@@ -578,22 +578,22 @@ export const StudentsPanel = () => {
 
       {/* Bulk action bar */}
       {selectedNames.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 whitespace-nowrap">
-          <span className="text-sm font-medium text-slate-200">{selectedNames.size} выбрано</span>
-          <div className="w-px h-4 bg-slate-700" />
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-white text-slate-700 px-5 py-3 rounded-2xl shadow-xl border border-indigo-100 whitespace-nowrap">
+          <span className="text-sm font-semibold text-indigo-600">{selectedNames.size} выбрано</span>
+          <div className="w-px h-4 bg-slate-200" />
           <button
             onClick={() => setSelectedNames(new Set())}
-            className="cursor-pointer text-xs text-slate-400 hover:text-white transition-colors"
+            className="cursor-pointer text-xs text-slate-400 hover:text-slate-700 transition-colors"
           >
             Снять
           </button>
           {groups.length > 0 && (
             <>
-              <div className="w-px h-4 bg-slate-700" />
+              <div className="w-px h-4 bg-slate-200" />
               <select
                 value={bulkGroupId}
                 onChange={(e) => setBulkGroupId(e.target.value)}
-                className="cursor-pointer text-xs bg-slate-800 border border-slate-700 text-slate-300 rounded-lg pl-2 pr-6 py-1.5 focus:outline-none"
+                className="cursor-pointer text-xs bg-slate-50 border border-slate-200 text-slate-600 rounded-lg pl-2 pr-6 py-1.5 focus:outline-none focus:border-indigo-400"
               >
                 <option value="">Группа...</option>
                 {groups.map((g) => (
@@ -605,13 +605,13 @@ export const StudentsPanel = () => {
               <button
                 onClick={handleBulkAssignGroup}
                 disabled={!bulkGroupId}
-                className="cursor-pointer text-xs bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-default px-3 py-1.5 rounded-lg font-medium transition-colors"
+                className="cursor-pointer text-xs bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-default text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
               >
                 В группу
               </button>
               <button
                 onClick={handleBulkRemoveFromGroup}
-                className="cursor-pointer text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg font-medium transition-colors"
+                className="cursor-pointer text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg font-medium transition-colors"
               >
                 Убрать из группы
               </button>
