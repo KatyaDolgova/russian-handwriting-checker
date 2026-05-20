@@ -15,7 +15,9 @@ ocr_service = OCRService()
 
 
 @router.post("/")
-async def upload(file: UploadFile = File(...), background_tasks: BackgroundTasks = None):
+async def upload(
+    file: UploadFile = File(...), background_tasks: BackgroundTasks = None
+):
     task_id = str(uuid4())
     path = TEMP_DIR / f"{task_id}_{file.filename}"
 

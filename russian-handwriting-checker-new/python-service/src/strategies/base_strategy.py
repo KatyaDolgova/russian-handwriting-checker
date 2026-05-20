@@ -2,9 +2,11 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
+
 @dataclass
 class OcrResult:
     """Структура результата распознавания"""
+
     text: str
     confidence: float
     processing_time: float
@@ -45,7 +47,7 @@ class OCRStrategy(ABC):
             return 0.0
 
         # Подсчет кириллических символов
-        cyrillic_chars = sum(1 for c in text if 'а' <= c.lower() <= 'я' or c in 'ёЁ')
+        cyrillic_chars = sum(1 for c in text if "а" <= c.lower() <= "я" or c in "ёЁ")
         cyrillic_ratio = cyrillic_chars / len(text) if text else 0
 
         # Подсчет реальных слов

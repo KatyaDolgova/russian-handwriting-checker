@@ -15,7 +15,6 @@ SAVE_PAYLOAD = {
     "score": 80.0,
     "score_max": 100.0,
     "comment": "Хорошо",
-    "pupil_name": "Иван Иванов",
     "function_id": "test-function-id",
     "folder_id": None,
     "work_date": None,
@@ -25,7 +24,6 @@ SAVE_GENERATION = {
     **SAVE_PAYLOAD,
     "score": None,
     "score_max": None,
-    "pupil_name": None,
     "title": "Генерация",
 }
 
@@ -57,18 +55,12 @@ class TestCheckSave:
         assert check["score"] is None
         assert check["score_max"] is None
 
-    async def test_save_auto_creates_pupil(self, client):
-        await save_check(client, {**SAVE_PAYLOAD, "pupil_name": "НовыйУченик"})
-        r = await client.get("/api/pupils/")
-        names = [p["name"] for p in r.json()]
-        assert "НовыйУченик" in names
-
-    async def test_save_same_pupil_once(self, client):
-        await save_check(client, {**SAVE_PAYLOAD, "pupil_name": "Дубль"})
-        await save_check(client, {**SAVE_PAYLOAD, "pupil_name": "Дубль"})
-        r = await client.get("/api/pupils/")
-        names = [p["name"] for p in r.json()]
-        assert names.count("Дубль") == 1
+    async def test_save_with_student_id(self, client):
+        student = (await client.post("/api/students/", json={"name": "Иван Иванов"})).json()
+        saved = await save_check(client, {**SAVE_PAYLOAD, "student_id": student["id"]})
+        r = await client.get("/api/check/history")
+        check = next(c for c in r.json() if c["id"] == saved["id"])
+        assert check["student_id"] == student["id"]
 
 
 class TestCheckHistory:
@@ -101,7 +93,9 @@ class TestCheckUpdate:
 
     async def test_update_comment(self, client):
         saved = await save_check(client)
-        r = await client.put(f"/api/check/{saved['id']}", json={"comment": "Исправлено"})
+        r = await client.put(
+            f"/api/check/{saved['id']}", json={"comment": "Исправлено"}
+        )
         assert r.status_code == 200
         assert r.json()["comment"] == "Исправлено"
 

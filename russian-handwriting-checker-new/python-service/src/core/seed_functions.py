@@ -404,7 +404,9 @@ async def seed_default_functions() -> None:
     async with SessionLocal() as db:
         for data in DEFAULT_FUNCTIONS:
             result = await db.execute(
-                select(Function).where(Function.name == data["name"], Function.is_default == True)
+                select(Function).where(
+                    Function.name == data["name"], Function.is_default == True
+                )
             )
             existing = result.scalar_one_or_none()
             if existing:

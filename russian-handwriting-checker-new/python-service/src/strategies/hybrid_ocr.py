@@ -31,7 +31,9 @@ class HybridOCR:
                     candidates.append((result, strategy.get_name()))
                     logger.info(
                         "%s | уверенность: %.3f | длина: %d",
-                        strategy.get_name(), result.confidence, len(result.text),
+                        strategy.get_name(),
+                        result.confidence,
+                        len(result.text),
                     )
             except Exception as e:
                 logger.warning("%s упал: %s", strategy.get_name(), e)
@@ -42,7 +44,9 @@ class HybridOCR:
         best_result, best_name = max(candidates, key=lambda x: x[0].confidence)
         logger.info(
             "Победитель: %s | уверенность: %.3f | время: %.2f с",
-            best_name, best_result.confidence, time.time() - start_time,
+            best_name,
+            best_result.confidence,
+            time.time() - start_time,
         )
         return best_result.text
 

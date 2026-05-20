@@ -16,7 +16,7 @@ class PaddleStrategy(OCRStrategy):
     def __init__(self):
         """Инициализация PaddleOCR"""
         self.ocr = PaddleOCR(
-            lang='ru',
+            lang="ru",
             use_angle_cls=False,
             det=True,
             rec=True,
@@ -54,7 +54,7 @@ class PaddleStrategy(OCRStrategy):
                             total_confidence += conf
                             line_count += 1
 
-            raw_text = '\n'.join(lines)
+            raw_text = "\n".join(lines)
 
             # Постобработка
             cleaned_text = fix_russian_handwriting(raw_text)
@@ -74,8 +74,8 @@ class PaddleStrategy(OCRStrategy):
                 metadata={
                     "raw_text": raw_text,
                     "line_count": line_count,
-                    "avg_line_confidence": avg_confidence
-                }
+                    "avg_line_confidence": avg_confidence,
+                },
             )
 
         except Exception as e:
@@ -85,5 +85,5 @@ class PaddleStrategy(OCRStrategy):
                 text="",
                 confidence=0.0,
                 processing_time=processing_time,
-                metadata={"error": str(e)}
+                metadata={"error": str(e)},
             )

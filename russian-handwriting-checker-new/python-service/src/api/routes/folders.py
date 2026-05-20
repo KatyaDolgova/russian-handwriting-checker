@@ -13,8 +13,12 @@ async def list_folders(db=Depends(get_db), current_user=Depends(get_current_user
 
 
 @router.post("/")
-async def create_folder(data: FolderCreate, db=Depends(get_db), current_user=Depends(get_current_user)):
-    return await FolderRepository(db).create(current_user["user_id"], data.name, data.description)
+async def create_folder(
+    data: FolderCreate, db=Depends(get_db), current_user=Depends(get_current_user)
+):
+    return await FolderRepository(db).create(
+        current_user["user_id"], data.name, data.description
+    )
 
 
 @router.put("/{folder_id}")

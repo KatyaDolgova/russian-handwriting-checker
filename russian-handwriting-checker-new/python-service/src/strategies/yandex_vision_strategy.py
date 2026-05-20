@@ -12,7 +12,6 @@ YANDEX_VISION_URL = "https://vision.api.cloud.yandex.net/vision/v1/batchAnalyze"
 
 
 class YandexVisionStrategy(OCRStrategy):
-
     def __init__(self):
         self.name = "YandexVision"
         self.available = bool(settings.yandex_vision_api_key)
@@ -35,7 +34,12 @@ class YandexVisionStrategy(OCRStrategy):
                 "analyzeSpecs": [
                     {
                         "content": image_b64,
-                        "features": [{"type": "TEXT_DETECTION", "textDetectionConfig": {"languageCodes": ["ru"]}}],
+                        "features": [
+                            {
+                                "type": "TEXT_DETECTION",
+                                "textDetectionConfig": {"languageCodes": ["ru"]},
+                            }
+                        ],
                     }
                 ]
             }
@@ -43,7 +47,9 @@ class YandexVisionStrategy(OCRStrategy):
                 "Authorization": f"Api-Key {settings.yandex_vision_api_key}",
                 "Content-Type": "application/json",
             }
-            response = requests.post(YANDEX_VISION_URL, json=payload, headers=headers, timeout=30)
+            response = requests.post(
+                YANDEX_VISION_URL, json=payload, headers=headers, timeout=30
+            )
             response.raise_for_status()
             data = response.json()
 
@@ -53,7 +59,9 @@ class YandexVisionStrategy(OCRStrategy):
             for page in pages:
                 for block in page.get("blocks", []):
                     for line in block.get("lines", []):
-                        words = [w["text"] for w in line.get("words", []) if w.get("text")]
+                        words = [
+                            w["text"] for w in line.get("words", []) if w.get("text")
+                        ]
                         if words:
                             lines.append(" ".join(words))
                         for w in line.get("words", []):
@@ -62,7 +70,11 @@ class YandexVisionStrategy(OCRStrategy):
 
             raw_text = "\n".join(lines)
             final_text = clean_text(raw_text)
-            avg_conf = sum(confidences) / len(confidences) if confidences else self._calculate_confidence(final_text)
+            avg_conf = (
+                sum(confidences) / len(confidences)
+                if confidences
+                else self._calculate_confidence(final_text)
+            )
 
             return OcrResult(
                 text=final_text,
@@ -72,4 +84,6 @@ class YandexVisionStrategy(OCRStrategy):
 
         except Exception as e:
             logger.error("Yandex Vision ошибка: %s", e)
-            return OcrResult(text="", confidence=0.0, processing_time=time.time() - start_time)
+            return OcrResult(
+                text="", confidence=0.0, processing_time=time.time() - start_time
+            )

@@ -1,7 +1,8 @@
+import React from 'react';
 import { render } from '@testing-library/react';
 import type { RenderOptions } from '@testing-library/react';
 import { type ReactNode } from 'react';
-import { ToastProvider } from '../components/Toast';
+import { ToastProvider } from '../components/ui';
 
 const mockUser = { user_id: 'test-uid', email: 'test@test.com', display_name: 'Тест' };
 

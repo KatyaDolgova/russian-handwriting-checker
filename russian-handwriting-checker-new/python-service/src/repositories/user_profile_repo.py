@@ -7,7 +7,9 @@ class UserProfileRepository:
         self.db = db
 
     async def get(self, user_id: str) -> UserProfile | None:
-        res = await self.db.execute(select(UserProfile).where(UserProfile.user_id == user_id))
+        res = await self.db.execute(
+            select(UserProfile).where(UserProfile.user_id == user_id)
+        )
         return res.scalar_one_or_none()
 
     async def upsert(self, user_id: str, data: dict) -> UserProfile:

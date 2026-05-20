@@ -42,9 +42,13 @@ async def update_function(
     if not obj:
         raise HTTPException(status_code=404, detail="Функция не найдена")
     if obj.is_default:
-        raise HTTPException(status_code=403, detail="Нельзя изменить стандартную функцию")
+        raise HTTPException(
+            status_code=403, detail="Нельзя изменить стандартную функцию"
+        )
     if obj.user_id != current_user["user_id"]:
-        raise HTTPException(status_code=403, detail="Нет прав на редактирование этой функции")
+        raise HTTPException(
+            status_code=403, detail="Нет прав на редактирование этой функции"
+        )
 
     was_published = obj.is_published
     updated = await repo.update(function_id, data)
@@ -66,7 +70,9 @@ async def delete_function(
     if not obj:
         raise HTTPException(status_code=404, detail="Функция не найдена")
     if obj.is_default:
-        raise HTTPException(status_code=403, detail="Нельзя удалить стандартную функцию")
+        raise HTTPException(
+            status_code=403, detail="Нельзя удалить стандартную функцию"
+        )
     if obj.user_id != current_user["user_id"]:
         raise HTTPException(status_code=403, detail="Нет прав на удаление этой функции")
     await repo.delete(function_id)
@@ -74,6 +80,7 @@ async def delete_function(
 
 
 # Галерея
+
 
 @router.get("/gallery")
 async def gallery(
@@ -85,6 +92,7 @@ async def gallery(
 
 
 # Публикация
+
 
 @router.post("/{function_id}/publish")
 async def publish_function(
@@ -98,13 +106,16 @@ async def publish_function(
     if not obj:
         raise HTTPException(status_code=404, detail="Функция не найдена")
     if obj.is_default:
-        raise HTTPException(status_code=403, detail="Нельзя публиковать стандартную функцию")
+        raise HTTPException(
+            status_code=403, detail="Нельзя публиковать стандартную функцию"
+        )
     if obj.user_id != current_user["user_id"]:
         raise HTTPException(status_code=403, detail="Нет прав")
     return await repo.publish(function_id, body.change_note)
 
 
 # Копирование из галереи
+
 
 @router.post("/{function_id}/copy")
 async def copy_function(
@@ -122,6 +133,7 @@ async def copy_function(
 
 
 # История версий
+
 
 @router.get("/{function_id}/versions")
 async def function_versions(

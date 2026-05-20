@@ -5,16 +5,13 @@ from src.api.routes import upload, check, functions, auth, folders, groups, stud
 from sqlalchemy import text
 from src.core.database import engine, Base
 from src.core.seed_functions import seed_default_functions
-import src.models.folder           # noqa: F401
-import src.models.group            # noqa: F401
-import src.models.user_profile     # noqa: F401
-import src.models.student          # noqa: F401
-import src.models.function_version # noqa: F401
+import src.models.folder  # noqa: F401
+import src.models.group  # noqa: F401
+import src.models.user_profile  # noqa: F401
+import src.models.student  # noqa: F401
+import src.models.function_version  # noqa: F401
 
-app = FastAPI(
-    title="Russian Handwriting Checker AI",
-    version="2.0"
-)
+app = FastAPI(title="Russian Handwriting Checker AI", version="2.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,15 +21,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.on_event("startup")
 async def startup():
     async with engine.begin() as conn:
-        await conn.execute(text("ALTER TABLE checks ADD COLUMN IF NOT EXISTS title VARCHAR"))
-        await conn.execute(text("ALTER TABLE checks ALTER COLUMN score_max DROP NOT NULL"))
-        await conn.execute(text("ALTER TABLE functions ADD COLUMN IF NOT EXISTS user_id VARCHAR"))
-        await conn.execute(text("ALTER TABLE functions ADD COLUMN IF NOT EXISTS is_published BOOLEAN DEFAULT FALSE"))
-        await conn.execute(text("ALTER TABLE functions ADD COLUMN IF NOT EXISTS original_function_id VARCHAR"))
+        await conn.execute(
+            text("ALTER TABLE checks ADD COLUMN IF NOT EXISTS title VARCHAR")
+        )
+        await conn.execute(
+            text("ALTER TABLE checks ALTER COLUMN score_max DROP NOT NULL")
+        )
+        await conn.execute(
+            text("ALTER TABLE functions ADD COLUMN IF NOT EXISTS user_id VARCHAR")
+        )
+        await conn.execute(
+            text(
+                "ALTER TABLE functions ADD COLUMN IF NOT EXISTS is_published BOOLEAN DEFAULT FALSE"
+            )
+        )
+        await conn.execute(
+            text(
+                "ALTER TABLE functions ADD COLUMN IF NOT EXISTS original_function_id VARCHAR"
+            )
+        )
     await seed_default_functions()
+
 
 app.include_router(auth.router, prefix="/api")
 app.include_router(upload.router, prefix="/api")

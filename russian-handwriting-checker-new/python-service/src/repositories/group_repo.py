@@ -13,7 +13,9 @@ class GroupRepository:
         )
         return res.scalars().all()
 
-    async def create_group(self, user_id: str, name: str, description: str | None = None) -> Group:
+    async def create_group(
+        self, user_id: str, name: str, description: str | None = None
+    ) -> Group:
         obj = Group(user_id=user_id, name=name, description=description)
         self.db.add(obj)
         await self.db.commit()
@@ -24,7 +26,9 @@ class GroupRepository:
         res = await self.db.execute(select(Group).where(Group.id == group_id))
         return res.scalar_one_or_none()
 
-    async def update_group(self, group_id: str, name: str, description: str | None = None) -> Group | None:
+    async def update_group(
+        self, group_id: str, name: str, description: str | None = None
+    ) -> Group | None:
         obj = await self.get_group(group_id)
         if not obj:
             return None
@@ -35,7 +39,9 @@ class GroupRepository:
         return obj
 
     async def delete_group(self, group_id: str) -> None:
-        await self.db.execute(sql_delete(StudentGroup).where(StudentGroup.group_id == group_id))
+        await self.db.execute(
+            sql_delete(StudentGroup).where(StudentGroup.group_id == group_id)
+        )
         obj = await self.get_group(group_id)
         if obj:
             await self.db.delete(obj)
@@ -53,7 +59,9 @@ class GroupRepository:
             for sg, name in rows
         ]
 
-    async def set_student_group(self, user_id: str, student_id: str, group_id: str | None) -> None:
+    async def set_student_group(
+        self, user_id: str, student_id: str, group_id: str | None
+    ) -> None:
         await self.db.execute(
             sql_delete(StudentGroup).where(
                 StudentGroup.user_id == user_id,
@@ -61,5 +69,7 @@ class GroupRepository:
             )
         )
         if group_id:
-            self.db.add(StudentGroup(user_id=user_id, student_id=student_id, group_id=group_id))
+            self.db.add(
+                StudentGroup(user_id=user_id, student_id=student_id, group_id=group_id)
+            )
         await self.db.commit()

@@ -18,10 +18,12 @@ def enhance_for_paddle(image_path: str) -> np.ndarray:
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     enhanced = clahe.apply(gray)
     binary = cv2.adaptiveThreshold(
-        enhanced, 255,
+        enhanced,
+        255,
         cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
         cv2.THRESH_BINARY,
-        blockSize=15, C=2
+        blockSize=15,
+        C=2,
     )
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 1))
     cleaned = cv2.morphologyEx(binary, cv2.MORPH_OPEN, kernel, iterations=1)

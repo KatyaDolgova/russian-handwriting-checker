@@ -1,8 +1,9 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../test/helpers';
-import ResultPanel from '../../components/ResultPanel';
+import { ResultPanel } from '../../components/panels';
 
 vi.mock('../../api', () => ({
   default: {
@@ -64,8 +65,8 @@ describe('ResultPanel — режим проверки', () => {
     renderWithProviders(
       <ResultPanel result={CHECK_RESULT} originalText="Привет мир" filename="test.jpg" functionId="fn-1" />
     );
-    // Score badge renders: "80" text node + <span>/ 5</span> — match by start
-    expect(screen.getByText(/^80/)).toBeInTheDocument();
+    // Score is in an editable input field
+    expect(screen.getByDisplayValue('80')).toBeInTheDocument();
   });
 
   it('renders errors section with count', () => {
@@ -131,11 +132,12 @@ describe('ResultPanel — режим генерации', () => {
     expect(screen.getByText('Сгенерированный результат')).toBeInTheDocument();
   });
 
-  it('does not show score section', () => {
+  it('does not show numeric score value', () => {
     renderWithProviders(
       <ResultPanel result={GENERATION_RESULT} originalText="" filename="gen.jpg" functionId="fn-gen" />
     );
-    expect(screen.queryByText(/^Оценка$/i)).not.toBeInTheDocument();
+    // In generation mode, editedScore initializes to '' (empty)
+    expect(screen.queryByDisplayValue('80')).not.toBeInTheDocument();
   });
 
   it('does not show errors toggle (С ошибками / Исправленный)', () => {

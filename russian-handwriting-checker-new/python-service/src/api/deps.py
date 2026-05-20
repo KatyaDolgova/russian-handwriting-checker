@@ -13,7 +13,8 @@ async def get_db():
     async with SessionLocal() as session:
         yield session
 
-#извлекает токен из заголовка, проверяет через Supabase, возвращает user_id
+
+# извлекает токен из заголовка, проверяет через Supabase, возвращает user_id
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> dict:
@@ -22,7 +23,9 @@ async def get_current_user(
     if supabase is None:
         raise HTTPException(status_code=503, detail="Supabase не настроен")
     try:
-        response = await asyncio.to_thread(supabase.auth.get_user, credentials.credentials)
+        response = await asyncio.to_thread(
+            supabase.auth.get_user, credentials.credentials
+        )
         if not response.user:
             raise HTTPException(status_code=401, detail="Недействительный токен")
         return {"user_id": str(response.user.id), "email": response.user.email}
@@ -30,7 +33,9 @@ async def get_current_user(
         raise
     except Exception as e:
         logger.warning(f"Ошибка проверки токена: {e}")
-        raise HTTPException(status_code=401, detail="Недействительный или просроченный токен")
+        raise HTTPException(
+            status_code=401, detail="Недействительный или просроченный токен"
+        )
 
 
 async def get_optional_user_id(
@@ -39,7 +44,9 @@ async def get_optional_user_id(
     if not credentials or supabase is None:
         return None
     try:
-        response = await asyncio.to_thread(supabase.auth.get_user, credentials.credentials)
+        response = await asyncio.to_thread(
+            supabase.auth.get_user, credentials.credentials
+        )
         return str(response.user.id) if response.user else None
     except Exception:
         return None

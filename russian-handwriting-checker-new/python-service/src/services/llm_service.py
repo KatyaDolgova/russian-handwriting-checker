@@ -10,8 +10,10 @@ class LLMService:
             api_key=settings.openai_api_key,
         )
 
-    #вызывает API с stream=True, отдаёт чанки по одному через AsyncIterator
-    async def stream(self, messages: list, timeout: float = 180.0) -> AsyncIterator[str]:
+    # вызывает API с stream=True, отдаёт чанки по одному через AsyncIterator
+    async def stream(
+        self, messages: list, timeout: float = 180.0
+    ) -> AsyncIterator[str]:
         stream = await self.client.chat.completions.create(
             model=settings.ollama_model,
             messages=messages,

@@ -2,6 +2,7 @@
 Интеграционные тесты для /api/functions API.
 Используют SQLite in-memory через фикстуру client из conftest.
 """
+
 import pytest
 from tests.conftest import FUNCTION_PAYLOAD, USER_2, as_user
 
@@ -30,7 +31,9 @@ class TestFunctionsCRUD:
 
     async def test_update_own_function(self, client):
         fn = await create_fn(client)
-        r = await client.put(f"/api/functions/{fn['id']}", json={**FUNCTION_PAYLOAD, "name": "Обновлено"})
+        r = await client.put(
+            f"/api/functions/{fn['id']}", json={**FUNCTION_PAYLOAD, "name": "Обновлено"}
+        )
         assert r.status_code == 200
         assert r.json()["name"] == "Обновлено"
 
@@ -94,7 +97,9 @@ class TestFunctionsPublish:
     async def test_update_published_creates_new_version(self, client):
         fn = await create_fn(client)
         await client.post(f"/api/functions/{fn['id']}/publish")
-        await client.put(f"/api/functions/{fn['id']}", json={**FUNCTION_PAYLOAD, "name": "v2"})
+        await client.put(
+            f"/api/functions/{fn['id']}", json={**FUNCTION_PAYLOAD, "name": "v2"}
+        )
         r = await client.get(f"/api/functions/{fn['id']}/versions")
         versions = r.json()
         assert len(versions) == 2

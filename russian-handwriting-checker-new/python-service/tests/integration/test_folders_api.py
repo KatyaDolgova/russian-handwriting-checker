@@ -1,6 +1,7 @@
 """
 Интеграционные тесты для /api/folders API.
 """
+
 import pytest
 from tests.conftest import USER_2, as_user
 
@@ -31,7 +32,10 @@ class TestFoldersCRUD:
 
     async def test_update_folder(self, client):
         folder = await create_folder(client)
-        r = await client.put(f"/api/folders/{folder['id']}", json={"name": "Новое имя", "description": ""})
+        r = await client.put(
+            f"/api/folders/{folder['id']}",
+            json={"name": "Новое имя", "description": ""},
+        )
         assert r.status_code == 200
         assert r.json()["name"] == "Новое имя"
 
@@ -65,7 +69,8 @@ class TestFoldersOwnership:
         folder = await create_folder(client)
         with as_user(USER_2):
             r = await client.put(
-                f"/api/folders/{folder['id']}", json={"name": "Взлом", "description": ""}
+                f"/api/folders/{folder['id']}",
+                json={"name": "Взлом", "description": ""},
             )
         assert r.status_code == 404
 

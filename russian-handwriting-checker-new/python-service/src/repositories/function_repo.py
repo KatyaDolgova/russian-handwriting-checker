@@ -20,12 +20,12 @@ class FunctionRepository:
         return res.scalars().all()
 
     async def get(self, function_id: str) -> Function | None:
-        res = await self.db.execute(
-            select(Function).where(Function.id == function_id)
-        )
+        res = await self.db.execute(select(Function).where(Function.id == function_id))
         return res.scalar_one_or_none()
 
-    async def create(self, data: FunctionCreate, user_id: str | None = None) -> Function:
+    async def create(
+        self, data: FunctionCreate, user_id: str | None = None
+    ) -> Function:
         obj = Function(id=str(uuid.uuid4()), user_id=user_id, **data.model_dump())
         self.db.add(obj)
         await self.db.commit()
@@ -45,9 +45,11 @@ class FunctionRepository:
         await self.db.delete(obj)
         await self.db.commit()
 
-     # Галерея
+    # Галерея
 
-    async def list_gallery(self, user_id: str | None = None, search: str = "") -> list[dict]:
+    async def list_gallery(
+        self, user_id: str | None = None, search: str = ""
+    ) -> list[dict]:
         max_ver_subq = (
             select(
                 FunctionVersion.function_id,
@@ -94,14 +96,17 @@ class FunctionRepository:
 
     # Публикация
 
-    async def publish(self, function_id: str, change_note: str | None = None) -> Function:
+    async def publish(
+        self, function_id: str, change_note: str | None = None
+    ) -> Function:
         obj = await self.get(function_id)
         obj.is_published = not obj.is_published
 
         if obj.is_published:
             max_ver_result = await self.db.execute(
-                select(sa_func.max(FunctionVersion.version_number))
-                .where(FunctionVersion.function_id == function_id)
+                select(sa_func.max(FunctionVersion.version_number)).where(
+                    FunctionVersion.function_id == function_id
+                )
             )
             max_ver = max_ver_result.scalar() or 0
             ver = FunctionVersion(
@@ -120,14 +125,17 @@ class FunctionRepository:
         await self.db.refresh(obj)
         return obj
 
-    async def republish(self, function_id: str, change_note: str | None = None) -> Function:
+    async def republish(
+        self, function_id: str, change_note: str | None = None
+    ) -> Function:
         obj = await self.get(function_id)
         if not obj.is_published:
             return obj
 
         max_ver_result = await self.db.execute(
-            select(sa_func.max(FunctionVersion.version_number))
-            .where(FunctionVersion.function_id == function_id)
+            select(sa_func.max(FunctionVersion.version_number)).where(
+                FunctionVersion.function_id == function_id
+            )
         )
         max_ver = max_ver_result.scalar() or 0
         ver = FunctionVersion(
@@ -174,11 +182,14 @@ class FunctionRepository:
         )
         return result.scalars().all()
 
-    async def create_version(self, function_id: str, change_note: str | None = None) -> FunctionVersion:
+    async def create_version(
+        self, function_id: str, change_note: str | None = None
+    ) -> FunctionVersion:
         obj = await self.get(function_id)
         max_ver_result = await self.db.execute(
-            select(sa_func.max(FunctionVersion.version_number))
-            .where(FunctionVersion.function_id == function_id)
+            select(sa_func.max(FunctionVersion.version_number)).where(
+                FunctionVersion.function_id == function_id
+            )
         )
         max_ver = max_ver_result.scalar() or 0
         ver = FunctionVersion(

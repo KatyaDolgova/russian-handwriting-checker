@@ -12,7 +12,9 @@ class FolderRepository:
         )
         return res.scalars().all()
 
-    async def create(self, user_id: str, name: str, description: str | None = None) -> Folder:
+    async def create(
+        self, user_id: str, name: str, description: str | None = None
+    ) -> Folder:
         obj = Folder(user_id=user_id, name=name, description=description)
         self.db.add(obj)
         await self.db.commit()
@@ -23,7 +25,9 @@ class FolderRepository:
         res = await self.db.execute(select(Folder).where(Folder.id == folder_id))
         return res.scalar_one_or_none()
 
-    async def update(self, folder_id: str, name: str, description: str | None = None) -> Folder | None:
+    async def update(
+        self, folder_id: str, name: str, description: str | None = None
+    ) -> Folder | None:
         obj = await self.get(folder_id)
         if not obj:
             return None

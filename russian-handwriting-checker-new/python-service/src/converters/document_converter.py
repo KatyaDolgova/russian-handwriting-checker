@@ -25,7 +25,7 @@ class DocumentConverter:
         logger.info("Обработка файла: %s (%s)", path.name, ext)
 
         # Если это изображение - используем гибридный OCR
-        if ext in ['.jpg', '.jpeg', '.png', '.bmp', '.tiff']:
+        if ext in [".jpg", ".jpeg", ".png", ".bmp", ".tiff"]:
             try:
                 logger.info("Изображение → используем HybridOCR")
                 return await self.ocr_fallback.process_async(str(path))

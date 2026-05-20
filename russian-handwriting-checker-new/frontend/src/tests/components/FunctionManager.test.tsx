@@ -1,8 +1,9 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../test/helpers';
-import FunctionManager from '../../components/FunctionManager';
+import { FunctionManager } from '../../components/ui';
 import api from '../../api';
 
 vi.mock('../../api', () => ({
@@ -129,7 +130,7 @@ describe('FunctionManager', () => {
     await user.type(screen.getByPlaceholderText('Проверка диктанта'), 'Новая функция тест');
     // Заполняем системный промпт (обязательно — без него форма не отправится)
     await user.type(
-      screen.getByPlaceholderText(/Ты — опытный учитель/),
+      screen.getByPlaceholderText(/Ты - опытный учитель/),
       'Проверь текст.',
     );
 

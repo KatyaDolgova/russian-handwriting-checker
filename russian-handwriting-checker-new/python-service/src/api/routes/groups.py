@@ -13,8 +13,12 @@ async def list_groups(db=Depends(get_db), current_user=Depends(get_current_user)
 
 
 @router.post("/")
-async def create_group(data: GroupCreate, db=Depends(get_db), current_user=Depends(get_current_user)):
-    return await GroupRepository(db).create_group(current_user["user_id"], data.name, data.description)
+async def create_group(
+    data: GroupCreate, db=Depends(get_db), current_user=Depends(get_current_user)
+):
+    return await GroupRepository(db).create_group(
+        current_user["user_id"], data.name, data.description
+    )
 
 
 @router.put("/{group_id}")
@@ -46,7 +50,9 @@ async def delete_group(
 
 
 @router.get("/students")
-async def get_student_groups(db=Depends(get_db), current_user=Depends(get_current_user)):
+async def get_student_groups(
+    db=Depends(get_db), current_user=Depends(get_current_user)
+):
     return await GroupRepository(db).get_student_groups(current_user["user_id"])
 
 

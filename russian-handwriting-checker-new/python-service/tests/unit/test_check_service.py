@@ -66,15 +66,15 @@ class TestBuildResult:
         assert result["errors"] == []
         assert result["corrected_text"] == "Результат генерации"
 
-    def test_generation_score_defaults_to_zero(self):
+    def test_generation_score_is_none(self):
         data = {"comment": "ok"}
         result = self.svc._build_result("", data)
-        assert result["score"] == 0.0
+        assert result["score"] is None
 
-    def test_invalid_score_defaults_to_zero(self):
+    def test_invalid_score_is_none(self):
         data = {"score": "не число", "corrected": "текст", "errors": []}
         result = self.svc._build_result("текст", data)
-        assert result["score"] == 0.0
+        assert result["score"] is None
 
     def test_float_score_preserved(self):
         data = {"score": 85.5, "corrected": "текст", "errors": []}
@@ -133,7 +133,8 @@ class TestBuildMessages:
         svc = make_service(func=func)
 
         import asyncio
-        messages = asyncio.get_event_loop().run_until_complete(
+
+        messages, _ = asyncio.get_event_loop().run_until_complete(
             svc._build_messages("мой текст", "func-1")
         )
         assert messages[0]["role"] == "system"
@@ -146,7 +147,8 @@ class TestBuildMessages:
         svc = make_service(func=func)
 
         import asyncio
-        messages = asyncio.get_event_loop().run_until_complete(
+
+        messages, _ = asyncio.get_event_loop().run_until_complete(
             svc._build_messages("мой текст", "func-1")
         )
         assert messages[1]["content"] == "мой текст"
@@ -158,7 +160,8 @@ class TestBuildMessages:
         svc = make_service(func=func)
 
         import asyncio
-        messages = asyncio.get_event_loop().run_until_complete(
+
+        messages, _ = asyncio.get_event_loop().run_until_complete(
             svc._build_messages("игнорируется", "func-1")
         )
         assert messages[1]["content"] == "Придумай тему для сочинения"
@@ -170,7 +173,8 @@ class TestBuildMessages:
         svc = CheckService(llm, repo)
 
         import asyncio
-        with pytest.raises(ValueError, match="not found"):
+
+        with pytest.raises(ValueError, match="не найдена"):
             asyncio.get_event_loop().run_until_complete(
                 svc._build_messages("текст", "missing-id")
             )

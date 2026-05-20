@@ -8,7 +8,6 @@ logger = get_logger(__name__)
 
 
 class OCRService:
-
     def __init__(self):
         self.doc_service = DocumentService()
         self.llm = LLMService()
@@ -46,16 +45,10 @@ class OCRService:
             logger.info("OCR завершён, запускаем коррекцию через LLM")
             text = await self._correct_ocr(raw_text)
 
-            tasks[task_id] = {
-                "status": "done",
-                "text": text
-            }
+            tasks[task_id] = {"status": "done", "text": text}
 
         except Exception as e:
-            tasks[task_id] = {
-                "status": "error",
-                "error": str(e)
-            }
+            tasks[task_id] = {"status": "error", "error": str(e)}
 
         finally:
             Path(file_path).unlink(missing_ok=True)

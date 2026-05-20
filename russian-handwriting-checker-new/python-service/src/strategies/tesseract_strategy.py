@@ -37,9 +37,7 @@ class TesseractStrategy(OCRStrategy):
 
             # Распознавание
             raw_text = pytesseract.image_to_string(
-                img_pil,
-                lang='rus',
-                config='--psm 6 --oem 3'
+                img_pil, lang="rus", config="--psm 6 --oem 3"
             ).strip()
 
             # Постобработка
@@ -57,8 +55,8 @@ class TesseractStrategy(OCRStrategy):
                 processing_time=processing_time,
                 metadata={
                     "raw_text": raw_text,
-                    "tesseract_version": str(pytesseract.get_tesseract_version())
-                }
+                    "tesseract_version": str(pytesseract.get_tesseract_version()),
+                },
             )
 
         except Exception as e:
@@ -67,5 +65,5 @@ class TesseractStrategy(OCRStrategy):
                 text="",
                 confidence=0.0,
                 processing_time=processing_time,
-                metadata={"error": str(e)}
+                metadata={"error": str(e)},
             )

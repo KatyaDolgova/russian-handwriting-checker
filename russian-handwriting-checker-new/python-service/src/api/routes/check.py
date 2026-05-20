@@ -18,7 +18,7 @@ def _make_service(db) -> CheckService:
     return CheckService(LLMService(), FunctionRepository(db))
 
 
-#оборачивает стрим в SSE-формат (data: {...}\n\n) и возвращает StreamingResponse
+# оборачивает стрим в SSE-формат (data: {...}\n\n) и возвращает StreamingResponse
 @router.post("/stream")
 async def stream_check(request: CheckRequest, db=Depends(get_db)):
     service = _make_service(db)
@@ -45,24 +45,26 @@ async def save(
     user_id: str | None = Depends(get_optional_user_id),
 ):
     repo = CheckRepository(db)
-    obj = await repo.create({
-        "filename": request.filename,
-        "title": request.title,
-        "source_text": request.source_text,
-        "original_text": request.original_text,
-        "corrected_text": request.corrected_text,
-        "errors": request.errors,
-        "criteria": request.criteria,
-        "pass_fail": request.pass_fail,
-        "score": request.score,
-        "score_max": request.score_max,
-        "comment": request.comment,
-        "student_id": request.student_id,
-        "function_id": request.function_id,
-        "folder_id": request.folder_id,
-        "work_date": request.work_date,
-        "user_id": user_id,
-    })
+    obj = await repo.create(
+        {
+            "filename": request.filename,
+            "title": request.title,
+            "source_text": request.source_text,
+            "original_text": request.original_text,
+            "corrected_text": request.corrected_text,
+            "errors": request.errors,
+            "criteria": request.criteria,
+            "pass_fail": request.pass_fail,
+            "score": request.score,
+            "score_max": request.score_max,
+            "comment": request.comment,
+            "student_id": request.student_id,
+            "function_id": request.function_id,
+            "folder_id": request.folder_id,
+            "work_date": request.work_date,
+            "user_id": user_id,
+        }
+    )
     return {"success": True, "id": obj.id}
 
 

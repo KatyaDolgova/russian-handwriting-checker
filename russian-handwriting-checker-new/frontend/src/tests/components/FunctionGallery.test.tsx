@@ -1,8 +1,9 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../test/helpers';
-import FunctionGallery from '../../components/FunctionGallery';
+import { FunctionGallery } from '../../components/ui';
 import api from '../../api';
 
 vi.mock('../../api', () => ({
