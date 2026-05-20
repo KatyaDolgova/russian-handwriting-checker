@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { ToastItem } from '@/components/ui';
 import type { ToastType, Toast } from '@/types';
@@ -26,11 +26,14 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const ctx: ToastContextType = {
-    error: (msg) => add('error', msg),
-    success: (msg) => add('success', msg),
-    info: (msg) => add('info', msg),
-  };
+  const ctx = useMemo<ToastContextType>(
+    () => ({
+      error: (msg) => add('error', msg),
+      success: (msg) => add('success', msg),
+      info: (msg) => add('info', msg),
+    }),
+    [add],
+  );
 
   return (
     <ToastContext.Provider value={ctx}>

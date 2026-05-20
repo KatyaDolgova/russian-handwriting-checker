@@ -7,6 +7,7 @@ class UserProfile(Base):
     __tablename__ = "user_profiles"
 
     user_id = Column(String, primary_key=True)
+    email = Column(String, nullable=True)
     display_name = Column(String, nullable=True)
     bio = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

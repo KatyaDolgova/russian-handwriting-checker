@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Search, Loader2, BookOpen } from 'lucide-react';
 import api from '@/api';
 import { useToast } from '@/components/ui';
@@ -7,6 +7,8 @@ import { GalleryCard } from '@/components/cards';
 
 export const FunctionGallery = () => {
   const toast = useToast();
+  const toastRef = useRef(toast);
+  toastRef.current = toast;
   const [functions, setFunctions] = useState<GalleryFn[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -24,9 +26,9 @@ export const FunctionGallery = () => {
     api
       .get('/api/functions/gallery', { params: { search: debouncedSearch } })
       .then((r) => setFunctions(r.data))
-      .catch(() => toast.error('Не удалось загрузить галерею'))
+      .catch(() => toastRef.current.error('Не удалось загрузить галерею'))
       .finally(() => setLoading(false));
-  }, [debouncedSearch, toast]);
+  }, [debouncedSearch]);
 
   useEffect(() => {
     load();

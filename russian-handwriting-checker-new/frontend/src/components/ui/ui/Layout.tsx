@@ -1,13 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { LogIn, LogOut, User, History, FileCheck, BookOpen, Settings, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { AuthModal } from '@/components/modals';
+import { useToast } from '@/components/ui';
 
 export const Layout = ({ children }: { children: ReactNode }) => {
-  const { user, logout, loading } = useAuth();
+  const { user, logout, loading, authError } = useAuth();
+  const toast = useToast();
   const [showAuth, setShowAuth] = useState(false);
+
+  useEffect(() => {
+    if (authError) {
+      toast.error(authError);
+      setShowAuth(true);
+    }
+  }, [authError]);
 
   const navCls = ({ isActive }: { isActive: boolean }) =>
     `cursor-pointer flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
