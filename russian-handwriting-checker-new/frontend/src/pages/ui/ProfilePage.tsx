@@ -3,7 +3,6 @@ import {
   User,
   Lock,
   BarChart2,
-  Save,
   Eye,
   EyeOff,
   BookOpen,
