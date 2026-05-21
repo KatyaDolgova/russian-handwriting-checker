@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
-# System libs for OpenCV, Tesseract OCR, and other deps
+# Системные библиотеки для OpenCV, Tesseract OCR и других приложений
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
@@ -21,4 +21,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]
