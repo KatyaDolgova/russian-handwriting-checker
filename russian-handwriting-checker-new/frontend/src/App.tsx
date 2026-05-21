@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { Layout, ToastProvider } from '@/components/ui';
-import { CheckPage, FunctionsPage, HistoryPage, ProfilePage, StudentsPage } from '@/pages';
+import { CheckPage, FunctionsPage, HistoryPage, ProfilePage, StudentsPage, NotFoundPage } from '@/pages';
 
 export interface CheckState {
   editedText: string;
@@ -38,6 +38,7 @@ export default function App() {
               <Route path="/students" element={<StudentsPage />} />
               <Route path="/functions" element={<FunctionsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Layout>
         </BrowserRouter>

@@ -3,3 +3,4 @@ export * from './ui/FunctionsPage';
 export * from './ui/HistoryPage';
 export * from './ui/ProfilePage';
 export * from './ui/StudentsPage';
+export * from './ui/NotFoundPage';
