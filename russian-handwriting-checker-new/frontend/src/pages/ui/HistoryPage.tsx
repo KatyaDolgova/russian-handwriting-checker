@@ -3,9 +3,16 @@ import { HistoryPanel } from '@/components/panels';
 import { EmptyAuth } from '@/components/ui';
 
 export const HistoryPage = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
-  if (!user) return <EmptyAuth />;
+  if (loading) return null;
+  if (!user)
+    return (
+      <EmptyAuth
+        title="Войдите, чтобы увидеть историю"
+        description="История сохраняется только для авторизованных пользователей"
+      />
+    );
 
   return (
     <div className="max-w-3xl">
