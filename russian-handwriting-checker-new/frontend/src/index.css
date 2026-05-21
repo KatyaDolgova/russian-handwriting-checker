@@ -29,7 +29,7 @@
   }
 }
 
-/* ProseMirror (TipTap) */
+/* Редактор ProseMirror (TipTap) */
 .ProseMirror {
   outline: none;
   min-height: 240px;
@@ -55,7 +55,7 @@
   height: 0;
 }
 
-/* Shimmer skeleton loading animation */
+/* Анимация переливания для скелетона загрузки */
 @keyframes shimmer {
   0% { background-position: -200% center; }
   100% { background-position: 200% center; }
@@ -74,7 +74,7 @@
   animation: shimmer 1.6s linear infinite;
 }
 
-/* Error highlights from LLM */
+/* Подсветка ошибок от ИИ */
 .error-highlight {
   background: #fee2e2;
   border-bottom: 2px solid #ef4444;

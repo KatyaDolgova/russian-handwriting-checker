@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+﻿import { useEffect, useState, useMemo } from 'react';
 import { User2, Loader2, ChevronDown, ChevronUp, Users, Search, X, FolderOpen } from 'lucide-react';
 import api from '@/api';
 import type {
@@ -264,7 +264,7 @@ export const StudentsPanel = () => {
 
   return (
     <div className="space-y-4">
-      {/* Groups manager */}
+      {/* Менеджер групп */}
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         <button
           onClick={() => setShowGroupMgr((v) => !v)}
@@ -298,7 +298,7 @@ export const StudentsPanel = () => {
         )}
       </div>
 
-      {/* Search + sort */}
+      {/* Поиск и сортировка */}
       <div className="flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
@@ -330,9 +330,9 @@ export const StudentsPanel = () => {
         />
       </div>
 
-      {/* Filters row */}
+      {/* Строка фильтров */}
       <div className="flex flex-wrap gap-3 items-center">
-        {/* Performance quick filter */}
+        {/* Быстрый фильтр по успеваемости */}
         <div className="flex bg-white border border-slate-200 rounded-xl p-0.5 gap-0.5">
           {(
             [
@@ -352,7 +352,7 @@ export const StudentsPanel = () => {
           ))}
         </div>
 
-        {/* Group filter dropdown */}
+        {/* Фильтр по группам */}
         {groups.length > 0 && (
           <FilterDropdown
             value={filterGroup}
@@ -366,7 +366,7 @@ export const StudentsPanel = () => {
           />
         )}
 
-        {/* Folder filter */}
+        {/* Фильтр по папкам */}
         {folders.length > 0 && (
           <FilterDropdown
             value={filterFolder}
@@ -390,7 +390,7 @@ export const StudentsPanel = () => {
         )}
       </div>
 
-      {/* Summary stats */}
+      {/* Сводная статистика */}
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-white rounded-2xl border border-slate-200 px-4 py-3 text-center">
           <p className="text-2xl font-bold text-slate-800">{displayedStudents.length}</p>
@@ -408,7 +408,7 @@ export const StudentsPanel = () => {
         </div>
       </div>
 
-      {/* Select all toggle */}
+      {/* Выбор всех */}
       {displayedStudents.length > 0 && (
         <div className="flex items-center justify-between min-h-[1.25rem]">
           {displayedStudents.length !== students.length && (
@@ -425,7 +425,7 @@ export const StudentsPanel = () => {
         </div>
       )}
 
-      {/* Student list */}
+      {/* Список учеников */}
       <div className="space-y-3">
         {displayedStudents.length === 0 ? (
           <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-8 text-center">
@@ -451,7 +451,7 @@ export const StudentsPanel = () => {
                 className="bg-white rounded-2xl border border-slate-200 overflow-hidden"
               >
                 <div className="flex items-center">
-                  {/* Checkbox */}
+                  {/* Чекбокс */}
                   <div className="pl-4 py-4 shrink-0">
                     <input
                       type="checkbox"
@@ -462,7 +462,7 @@ export const StudentsPanel = () => {
                     />
                   </div>
 
-                  {/* Main row */}
+                  {/* Основная строка */}
                   <button
                     onClick={() => setExpandedId(isExpanded ? null : student.id)}
                     className="cursor-pointer flex-1 flex items-center gap-4 px-4 py-4 hover:bg-slate-50 transition-colors text-left"
@@ -524,7 +524,7 @@ export const StudentsPanel = () => {
 
                 {isExpanded && (
                   <div className="border-t border-slate-100 px-5 py-4 space-y-4">
-                    {/* Inline group selector */}
+                    {/* Выбор группы */}
                     <div className="flex items-center gap-3">
                       <span className="text-xs font-medium text-slate-500 uppercase tracking-wide shrink-0">
                         Группа
@@ -543,7 +543,7 @@ export const StudentsPanel = () => {
                       </select>
                     </div>
 
-                    {/* Works list */}
+                    {/* Список работ */}
                     <div>
                       <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-3">
                         Работы
@@ -560,7 +560,7 @@ export const StudentsPanel = () => {
         )}
       </div>
 
-      {/* Bulk action bar */}
+      {/* Панель массовых действий */}
       {selectedNames.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-white text-slate-700 px-5 py-3 rounded-2xl shadow-xl border border-indigo-100 whitespace-nowrap">
           <span className="text-sm font-semibold text-indigo-600">{selectedNames.size} выбрано</span>
