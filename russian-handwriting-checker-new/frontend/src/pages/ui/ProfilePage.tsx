@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import api from '@/api';
 import { useAuth } from '@/context/AuthContext';
-import { Avatar, RankProgress } from '@/components/ui';
+import { Avatar, RankProgress, EmptyAuth } from '@/components/ui';
 import { formatMonth } from '@/utils';
 import { RANK_COLORS } from '@/constants';
 import { SectionCard, StatCard } from '@/components/cards';
@@ -41,7 +41,7 @@ interface ProfileData {
 }
 
 export const ProfilePage = () => {
-  const { user, updateDisplayName } = useAuth();
+  const { user, loading: authLoading, updateDisplayName } = useAuth();
 
   const [data, setData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -118,14 +118,14 @@ export const ProfilePage = () => {
     }
   };
 
-  if (!user) {
+  if (authLoading) return null;
+  if (!user)
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-dashed border-slate-200 max-w-md mx-auto">
-        <User className="h-10 w-10 text-slate-300 mb-3" />
-        <p className="text-slate-600 font-medium">Войдите, чтобы открыть профиль</p>
-      </div>
+      <EmptyAuth
+        title="Войдите, чтобы открыть профиль"
+        description="Профиль и статистика доступны только авторизованным пользователям"
+      />
     );
-  }
 
   const rankStyle = data ? RANK_COLORS[data.rank.color] : RANK_COLORS.slate;
 

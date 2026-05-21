@@ -4,7 +4,7 @@ import api from '@/api';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from './Toast';
 import type { Fn } from '@/types';
-import { FunctionForm, SectionHeader } from '@/components/ui';
+import { FunctionForm, SectionHeader, EmptyAuth } from '@/components/ui';
 import { FunctionCard } from '@/components/cards';
 
 const EMPTY: Omit<Fn, 'id'> = {
@@ -93,8 +93,8 @@ export const FunctionManager = () => {
   return (
     <div className="space-y-8">
       <div>
-        <SectionHeader title="Мои функции" count={myFns.length}>
-          {!creating && (
+        <SectionHeader title="Мои функции" count={user ? myFns.length : 0}>
+          {user && !creating && (
             <button
               onClick={() => setCreating(true)}
               className="cursor-pointer flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-medium transition-colors"
@@ -105,45 +105,52 @@ export const FunctionManager = () => {
           )}
         </SectionHeader>
 
-        <div className="space-y-2">
-          {creating && (
-            <FunctionForm
-              initial={EMPTY}
-              onSave={handleCreate}
-              onCancel={() => setCreating(false)}
-            />
-          )}
+        {!user ? (
+          <EmptyAuth
+            title="Войдите, чтобы создавать функции"
+            description="Создание и управление своими функциями доступно только авторизованным пользователям"
+          />
+        ) : (
+          <div className="space-y-2">
+            {creating && (
+              <FunctionForm
+                initial={EMPTY}
+                onSave={handleCreate}
+                onCancel={() => setCreating(false)}
+              />
+            )}
 
-          {myFns.length === 0 && !creating && (
-            <div className="text-center py-8 text-slate-400 text-sm bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-              Нет созданных функций. Нажмите «Создать», чтобы добавить свою.
-            </div>
-          )}
+            {myFns.length === 0 && !creating && (
+              <div className="text-center py-8 text-slate-400 text-sm bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                Нет созданных функций. Нажмите «Создать», чтобы добавить свою.
+              </div>
+            )}
 
-          {myFns.map((fn) => (
-            <FunctionCard
-              key={fn.id}
-              fn={fn}
-              isExpanded={expandedId === fn.id}
-              isEditing={editingId === fn.id}
-              isOwn
-              confirmDeleteId={confirmDeleteId}
-              confirmUnpublishId={confirmUnpublishId}
-              onToggleExpand={() => setExpandedId(expandedId === fn.id ? null : fn.id)}
-              onEdit={() => setEditingId(fn.id)}
-              onCancelEdit={() => setEditingId(null)}
-              onSaveEdit={(data) => handleUpdate(fn.id, data)}
-              onDelete={() => handleDelete(fn.id)}
-              onConfirmDelete={() => setConfirmDeleteId(confirmDeleteId === fn.id ? null : fn.id)}
-              onCancelDelete={() => setConfirmDeleteId(null)}
-              onTogglePublish={() => handlePublishToggle(fn)}
-              onConfirmUnpublish={() => doPublish(fn.id)}
-              onCancelUnpublish={() => setConfirmUnpublishId(null)}
-            />
-          ))}
-        </div>
+            {myFns.map((fn) => (
+              <FunctionCard
+                key={fn.id}
+                fn={fn}
+                isExpanded={expandedId === fn.id}
+                isEditing={editingId === fn.id}
+                isOwn
+                confirmDeleteId={confirmDeleteId}
+                confirmUnpublishId={confirmUnpublishId}
+                onToggleExpand={() => setExpandedId(expandedId === fn.id ? null : fn.id)}
+                onEdit={() => setEditingId(fn.id)}
+                onCancelEdit={() => setEditingId(null)}
+                onSaveEdit={(data) => handleUpdate(fn.id, data)}
+                onDelete={() => handleDelete(fn.id)}
+                onConfirmDelete={() => setConfirmDeleteId(confirmDeleteId === fn.id ? null : fn.id)}
+                onCancelDelete={() => setConfirmDeleteId(null)}
+                onTogglePublish={() => handlePublishToggle(fn)}
+                onConfirmUnpublish={() => doPublish(fn.id)}
+                onCancelUnpublish={() => setConfirmUnpublishId(null)}
+              />
+            ))}
+          </div>
+        )}
 
-        {publishingId && (
+        {user && publishingId && (
           <div className="flex items-center gap-2 mt-2 text-xs text-slate-400">
             <Loader2 className="h-3 w-3 animate-spin" />
             Обновляем публикацию...
