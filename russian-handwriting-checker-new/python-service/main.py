@@ -44,6 +44,9 @@ async def startup():
                 "ALTER TABLE functions ADD COLUMN IF NOT EXISTS original_function_id VARCHAR"
             )
         )
+        await conn.execute(
+            text("ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS email TEXT")
+        )
     await seed_default_functions()
 
 
