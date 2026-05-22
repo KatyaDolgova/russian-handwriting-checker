@@ -11,6 +11,7 @@ import type {
 } from '@/types';
 import { formatDate, scoreColor } from '@/utils';
 import { ScoreBar, CheckMini, GroupSection, FilterDropdown } from '@/components/ui';
+import { PASS, SCORE_THRESHOLDS } from '@/constants';
 
 interface StudentStats {
   id: string;
@@ -179,7 +180,7 @@ export const StudentsPanel = () => {
           return d > latest ? d : latest;
         }, ''),
         passFails: pfChecks.length,
-        passFailPassed: pfChecks.filter((c) => c.pass_fail === 'зачёт').length,
+        passFailPassed: pfChecks.filter((c) => c.pass_fail === PASS).length,
       });
     });
     return result;
@@ -196,9 +197,10 @@ export const StudentsPanel = () => {
       const q = search.toLowerCase().trim();
       result = result.filter((s) => s.name.toLowerCase().includes(q));
     }
-    if (pctFilter === 'low') result = result.filter((s) => (s.avgPct ?? -1) < 50);
-    else if (pctFilter === 'mid') result = result.filter((s) => s.avgPct != null && s.avgPct >= 50 && s.avgPct < 80);
-    else if (pctFilter === 'high') result = result.filter((s) => (s.avgPct ?? -1) >= 80);
+    const { HIGH, MID } = SCORE_THRESHOLDS;
+    if (pctFilter === 'low') result = result.filter((s) => (s.avgPct ?? -1) < MID);
+    else if (pctFilter === 'mid') result = result.filter((s) => s.avgPct != null && s.avgPct >= MID && s.avgPct < HIGH);
+    else if (pctFilter === 'high') result = result.filter((s) => (s.avgPct ?? -1) >= HIGH);
 
     return [...result].sort((a, b) => {
       if (sort === 'name_asc') return a.name.localeCompare(b.name, 'ru');

@@ -23,6 +23,7 @@ import {
   FilterDropdown,
 } from '@/components/ui';
 import { formatDate } from '@/utils';
+import { PASS, SCORE_THRESHOLDS } from '@/constants';
 import type { Folder, DateFilter, SortKey, CheckRecord, EditForm, Student } from '@/types';
 import { EditPanel } from '@/components/panels';
 
@@ -200,7 +201,7 @@ export const HistoryPanel = () => {
     const totalMax = scored.reduce((s, c) => s + (c.score_max ?? 0), 0);
     const avgPct = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : null;
     const passFails = filtered.filter((c) => c.pass_fail != null);
-    const passFailPassed = passFails.filter((c) => c.pass_fail === 'зачёт').length;
+    const passFailPassed = passFails.filter((c) => c.pass_fail === PASS).length;
     return {
       total: filtered.length,
       students: studentCount,
@@ -321,7 +322,7 @@ export const HistoryPanel = () => {
           <div className="bg-white rounded-2xl border border-slate-200 px-4 py-3 text-center">
             {stats.avgPct != null ? (
               <p
-                className={`text-2xl font-bold ${stats.avgPct >= 80 ? 'text-emerald-600' : stats.avgPct >= 50 ? 'text-amber-600' : 'text-red-600'}`}
+                className={`text-2xl font-bold ${stats.avgPct >= SCORE_THRESHOLDS.HIGH ? 'text-emerald-600' : stats.avgPct >= SCORE_THRESHOLDS.MID ? 'text-amber-600' : 'text-red-600'}`}
               >
                 {stats.avgPct}%
               </p>

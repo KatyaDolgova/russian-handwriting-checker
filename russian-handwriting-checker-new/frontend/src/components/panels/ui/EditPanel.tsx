@@ -2,6 +2,7 @@ import type { CheckRecord, EditForm, Folder, Student } from '@/types';
 import { toLocalDatetime } from '@/utils';
 import { X, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { PASS } from '@/constants';
 
 interface EditPanelProps {
   check: CheckRecord;
@@ -58,7 +59,7 @@ export const EditPanel = ({ check, folders, students, onSave, onCancel }: EditPa
               value={form.pass_fail ?? check.pass_fail}
               onChange={(e) => setForm((f) => ({ ...f, pass_fail: e.target.value }))}
               className={`cursor-pointer w-full px-3 py-2 border-2 rounded-xl text-sm font-bold focus:outline-none transition-colors ${
-                (form.pass_fail ?? check.pass_fail) === 'зачёт'
+                (form.pass_fail ?? check.pass_fail) === PASS
                   ? 'border-emerald-200 bg-emerald-50 text-emerald-700 focus:border-emerald-400'
                   : 'border-red-200 bg-red-50 text-red-700 focus:border-red-400'
               }`}

@@ -1,3 +1,5 @@
+import { PASS, SCORE_THRESHOLDS } from '@/constants';
+
 export const ScoreCircle = ({
   score,
   max,
@@ -8,7 +10,7 @@ export const ScoreCircle = ({
   passFail?: string | null;
 }) => {
   if (passFail != null) {
-    const passed = passFail === 'зачёт';
+    const passed = passFail === PASS;
     return (
       <div
         title={passFail}
@@ -30,10 +32,11 @@ export const ScoreCircle = ({
     );
   }
   const pct = max != null && max > 0 ? score / max : 0;
+  const { HIGH, MID } = SCORE_THRESHOLDS;
   const color =
-    pct >= 0.8
+    pct >= HIGH / 100
       ? 'text-emerald-600 bg-emerald-50 border-emerald-200'
-      : pct >= 0.5
+      : pct >= MID / 100
         ? 'text-amber-600 bg-amber-50 border-amber-200'
         : 'text-red-600 bg-red-50 border-red-200';
   return (

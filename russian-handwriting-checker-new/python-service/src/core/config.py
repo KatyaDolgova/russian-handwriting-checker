@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     openai_api_key: str = (
         "ollama"  # для Ollama не нужен; для Groq/OpenAI - реальный ключ
     )
+    llm_temperature: float = 0.7
+    llm_max_tokens: int = 8000
 
     database_url: str = "sqlite+aiosqlite:///./app.db"
 

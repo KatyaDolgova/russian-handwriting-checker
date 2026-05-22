@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { TOKEN_STORAGE_KEY } from '@/constants';
 
 const BASE_URL = import.meta.env.BASE_URL;
 
@@ -7,7 +8,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
+  const token = localStorage.getItem(TOKEN_STORAGE_KEY);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

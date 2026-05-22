@@ -1,4 +1,4 @@
-import { MONTHS_RU } from './constants';
+import { MONTHS_RU, SCORE_THRESHOLDS } from './constants';
 
 export const formatMonth = (raw: string | null) => {
   if (!raw) return '-';
@@ -24,5 +24,6 @@ export const toLocalDatetime = (iso: string): string => {
 };
 
 export const scoreColor = (pct: number) => {
-  return pct >= 80 ? 'text-emerald-600' : pct >= 50 ? 'text-amber-600' : 'text-red-600';
+  const { HIGH, MID } = SCORE_THRESHOLDS;
+  return pct >= HIGH ? 'text-emerald-600' : pct >= MID ? 'text-amber-600' : 'text-red-600';
 };

@@ -5,6 +5,16 @@ import type { ToastType } from '@/types';
 export const POLL_INTERVAL = 1500;
 export const POLL_TIMEOUT = 120_000;
 
+export const SCORE_THRESHOLDS = { HIGH: 80, MID: 50 } as const;
+
+export const PASS = 'зачёт';
+export const FAIL = 'незачёт';
+
+export const TOKEN_STORAGE_KEY = 'access_token';
+
+export const COMMENT_PREVIEW_LENGTH = 180;
+export const SAVE_FEEDBACK_DURATION_MS = 3000;
+
 export const RANK_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   slate: { bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200' },
   blue: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },

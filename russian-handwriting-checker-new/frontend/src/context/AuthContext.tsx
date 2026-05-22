@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import api from '@/api';
+import { TOKEN_STORAGE_KEY } from '@/constants';
 
 interface User {
   user_id: string;
@@ -22,13 +23,13 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('access_token'));
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_STORAGE_KEY));
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(() => !!localStorage.getItem('access_token'));
+  const [loading, setLoading] = useState<boolean>(() => !!localStorage.getItem(TOKEN_STORAGE_KEY));
   const [authError, setAuthError] = useState<string | null>(null);
 
   const logout = () => {
-    localStorage.removeItem('access_token');
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
     setToken(null);
     setUser(null);
     setLoading(false);
@@ -69,14 +70,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     const res = await api.post('/api/auth/login', { email, password });
     const { access_token } = res.data;
-    localStorage.setItem('access_token', access_token);
+    localStorage.setItem(TOKEN_STORAGE_KEY, access_token);
     setToken(access_token);
   };
 
   const register = async (email: string, password: string): Promise<string> => {
     const res = await api.post('/api/auth/register', { email, password });
     if (res.data.access_token) {
-      localStorage.setItem('access_token', res.data.access_token);
+      localStorage.setItem(TOKEN_STORAGE_KEY, res.data.access_token);
       setToken(res.data.access_token);
     }
     return res.data.message || 'Регистрация прошла успешно';

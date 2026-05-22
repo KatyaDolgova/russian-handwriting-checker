@@ -1,3 +1,5 @@
+import { PASS, SCORE_THRESHOLDS } from '@/constants';
+
 interface ScoreBadgeProps {
   score: string;
   label?: string | null;
@@ -9,7 +11,7 @@ export const ScoreBadge = ({ score, label, max }: ScoreBadgeProps) => {
 
   if (cleanLabel) {
     const isPass =
-      cleanLabel.toLowerCase().includes('зачёт') && !cleanLabel.toLowerCase().includes('незачёт');
+      cleanLabel.toLowerCase().includes(PASS) && !cleanLabel.toLowerCase().includes('незачёт');
     return (
       <div
         className={`inline-flex items-center px-4 py-2 rounded-2xl border font-bold text-lg ${isPass ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : 'text-red-600 bg-red-50 border-red-200'}`}
@@ -30,10 +32,11 @@ export const ScoreBadge = ({ score, label, max }: ScoreBadgeProps) => {
 
   const m = parseFloat(max) || 5;
   const pct = m > 0 ? s / m : 0;
+  const { HIGH, MID } = SCORE_THRESHOLDS;
   const color =
-    pct >= 0.8
+    pct >= HIGH / 100
       ? 'text-emerald-600 bg-emerald-50 border-emerald-200'
-      : pct >= 0.5
+      : pct >= MID / 100
         ? 'text-amber-600 bg-amber-50 border-amber-200'
         : 'text-red-600 bg-red-50 border-red-200';
   return (
