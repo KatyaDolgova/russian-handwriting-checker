@@ -14,15 +14,16 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/ui/Toast';
 import { CopyBtn, ScoreBadge } from '@/components/ui';
 import type { Folder, Student } from '@/types';
+import { PASS, FAIL, COMMENT_PREVIEW_LENGTH, SAVE_FEEDBACK_DURATION_MS } from '@/constants';
 
 const CommentBlock = ({ text }: { text: string }) => {
   const [expanded, setExpanded] = useState(false);
   if (!text) return <p className="text-slate-400 text-sm">-</p>;
-  const isLong = text.length > 180;
+  const isLong = text.length > COMMENT_PREVIEW_LENGTH;
   return (
     <div>
       <p className="text-slate-600 text-sm leading-relaxed">
-        {isLong && !expanded ? text.slice(0, 180) + '…' : text}
+        {isLong && !expanded ? text.slice(0, COMMENT_PREVIEW_LENGTH) + '…' : text}
       </p>
       {isLong && (
         <button
@@ -64,9 +65,9 @@ export const ResultPanel = ({
       crit &&
       Object.values(crit).every((v: any) => v.result !== undefined && v.score === undefined)
     ) {
-      return (Object.values(crit) as any[]).every((v) => v.result === 'зачёт')
-        ? 'зачёт'
-        : 'незачёт';
+      return (Object.values(crit) as any[]).every((v) => v.result === PASS)
+        ? PASS
+        : FAIL;
     }
     if (result.score == null) return '';
     // Числовые критерии - считаем сумму
@@ -134,13 +135,13 @@ export const ResultPanel = ({
   const errors: any[] = result.errors || [];
   const criteria: Record<string, any> | null = result.criteria || null;
   const passFail: string | null =
-    typeof result.score === 'string' && ['зачёт', 'незачёт'].includes(result.score.toLowerCase())
+    typeof result.score === 'string' && [PASS, FAIL].includes(result.score.toLowerCase())
       ? result.score.toLowerCase()
       : criteria &&
           Object.values(criteria).every((v: any) => v.result !== undefined && v.score === undefined)
-        ? (Object.values(criteria) as any[]).every((v) => v.result === 'зачёт')
-          ? 'зачёт'
-          : 'незачёт'
+        ? (Object.values(criteria) as any[]).every((v) => v.result === PASS)
+          ? PASS
+          : FAIL
         : null;
 
   const handleSave = async () => {
@@ -176,7 +177,7 @@ export const ResultPanel = ({
         work_date: new Date(workDate).toISOString(),
       });
       setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      setTimeout(() => setSaved(false), SAVE_FEEDBACK_DURATION_MS);
     } catch {
       toast.error('Ошибка при сохранении');
     } finally {
@@ -382,13 +383,13 @@ export const ResultPanel = ({
               value={editedScore}
               onChange={(e) => setEditedScore(e.target.value)}
               className={`cursor-pointer w-full px-3 py-2 border-2 rounded-xl text-sm font-bold focus:outline-none transition-colors ${
-                editedScore === 'зачёт'
+                editedScore === PASS
                   ? 'border-emerald-200 bg-emerald-50 text-emerald-700 focus:border-emerald-400'
                   : 'border-red-200 bg-red-50 text-red-700 focus:border-red-400'
               }`}
             >
-              <option value="зачёт">Зачёт</option>
-              <option value="незачёт">Незачёт</option>
+              <option value={PASS}>Зачёт</option>
+              <option value={FAIL}>Незачёт</option>
             </select>
           ) : scoreLabel ? (
             <ScoreBadge score={editedScore} label={scoreLabel} max={scoreMax} />

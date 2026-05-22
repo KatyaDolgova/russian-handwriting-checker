@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Sparkles, Loader2, ChevronRight, X } from 'lucide-react';
 import api from '@/api';
 import { useToast } from '@/components/ui/ui/Toast';
-import { PALETTE } from '@/constants';
+import { PALETTE, TOKEN_STORAGE_KEY } from '@/constants';
 import type { Fn } from '@/types';
 
 interface CheckPanelProps {
@@ -68,7 +68,7 @@ export const CheckPanel = ({
     const controller = new AbortController();
     abortRef.current = controller;
 
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem(TOKEN_STORAGE_KEY);
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 

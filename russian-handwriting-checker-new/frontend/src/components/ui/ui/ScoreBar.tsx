@@ -1,7 +1,9 @@
 import { scoreColor } from '@/utils';
+import { SCORE_THRESHOLDS } from '@/constants';
 
 export const ScoreBar = ({ pct }: { pct: number }) => {
-  const bar = pct >= 80 ? 'bg-emerald-500' : pct >= 50 ? 'bg-amber-500' : 'bg-red-500';
+  const { HIGH, MID } = SCORE_THRESHOLDS;
+  const bar = pct >= HIGH ? 'bg-emerald-500' : pct >= MID ? 'bg-amber-500' : 'bg-red-500';
   return (
     <div className="flex items-center gap-2">
       <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">

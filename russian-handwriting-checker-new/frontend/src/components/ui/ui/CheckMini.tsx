@@ -1,6 +1,7 @@
 import type { CheckRecord, Folder } from '@/types';
 import { formatDate } from '@/utils';
 import { FolderClosed } from 'lucide-react';
+import { PASS, SCORE_THRESHOLDS } from '@/constants';
 
 export const CheckMini = ({ check, folders }: { check: CheckRecord; folders: Folder[] }) => {
   const folderName = check.folder_id ? folders.find((f) => f.id === check.folder_id)?.name : null;
@@ -9,7 +10,7 @@ export const CheckMini = ({ check, folders }: { check: CheckRecord; folders: Fol
   let badgeContent: string;
   let color: string;
   if (check.pass_fail != null) {
-    const passed = check.pass_fail === 'зачёт';
+    const passed = check.pass_fail === PASS;
     badgeContent = passed ? 'З' : 'Н';
     color = passed
       ? 'text-emerald-600 bg-emerald-50 border-emerald-200'
@@ -19,11 +20,12 @@ export const CheckMini = ({ check, folders }: { check: CheckRecord; folders: Fol
     color = 'text-slate-300 bg-slate-50 border-slate-200';
   } else {
     const pct = check.score_max != null && check.score_max > 0 ? check.score / check.score_max : 0;
+    const { HIGH, MID } = SCORE_THRESHOLDS;
     badgeContent = String(check.score);
     color =
-      pct >= 0.8
+      pct >= HIGH / 100
         ? 'text-emerald-600 bg-emerald-50 border-emerald-200'
-        : pct >= 0.5
+        : pct >= MID / 100
           ? 'text-amber-600 bg-amber-50 border-amber-200'
           : 'text-red-600 bg-red-50 border-red-200';
   }

@@ -17,8 +17,8 @@ class LLMService:
         stream = await self.client.chat.completions.create(
             model=settings.ollama_model,
             messages=messages,
-            temperature=0.7,
-            max_tokens=8000,
+            temperature=settings.llm_temperature,
+            max_tokens=settings.llm_max_tokens,
             timeout=timeout,
             stream=True,
         )
