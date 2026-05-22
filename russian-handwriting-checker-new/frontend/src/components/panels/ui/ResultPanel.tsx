@@ -374,7 +374,7 @@ export const ResultPanel = ({
         );
       })()}
 
-      <div className="grid grid-cols-2 gap-4 px-5 py-3 border-b border-slate-100">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-5 py-3 border-b border-slate-100">
         <div>
           <p className="text-xs text-slate-400 mb-2 font-medium uppercase tracking-wide">Оценка</p>
           {passFail != null ? (
@@ -438,7 +438,7 @@ export const ResultPanel = ({
           <p className="text-xs text-slate-400 mb-3 font-medium uppercase tracking-wide">
             Критерии
           </p>
-          <div className="grid grid-cols-2 gap-1.5 max-h-64 overflow-y-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-64 overflow-y-auto">
             {Object.entries(criteria).map(([key, val]: [string, any]) => (
               <div
                 key={key}

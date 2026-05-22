@@ -222,7 +222,7 @@ export const ProfilePage = () => {
                   </button>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
                     Новый пароль
@@ -287,7 +287,7 @@ export const ProfilePage = () => {
               title="Статистика"
               icon={<BarChart2 className="h-4 w-4 text-indigo-500" />}
             >
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <StatCard
                   icon={<CheckCircle className="h-4 w-4 text-indigo-400" />}
                   label="Проверок выполнено"

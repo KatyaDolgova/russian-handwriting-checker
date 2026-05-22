@@ -56,7 +56,7 @@ export const CheckPage = ({ state, setState }: CheckPageProps) => {
   };
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div className="flex flex-col gap-5">
         <UploadForm onSuccess={handleUploadSuccess} />
 
