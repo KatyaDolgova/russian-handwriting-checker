@@ -309,7 +309,7 @@ export const HistoryPanel = () => {
       </div>
 
       {stats && (
-        <div className={`grid gap-3 ${stats.passFails > 0 ? 'grid-cols-4' : 'grid-cols-3'}`}>
+        <div className={`grid gap-3 ${stats.passFails > 0 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'}`}>
           <div className="bg-white rounded-2xl border border-slate-200 px-4 py-3 text-center">
             <p className="text-2xl font-bold text-slate-800">{stats.total}</p>
             <p className="text-xs text-slate-400 mt-0.5">Проверок</p>

@@ -35,7 +35,7 @@ export const EditPanel = ({ check, folders, students, onSave, onCancel }: EditPa
 
   return (
     <div className="border-t border-slate-100 px-4 py-4 space-y-3">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-medium text-slate-500 mb-1">Ученик</label>
           <select
@@ -90,7 +90,7 @@ export const EditPanel = ({ check, folders, students, onSave, onCancel }: EditPa
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-medium text-slate-500 mb-1">Дата работы</label>
           <input

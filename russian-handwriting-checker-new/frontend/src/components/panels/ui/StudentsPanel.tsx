@@ -391,7 +391,7 @@ export const StudentsPanel = () => {
       </div>
 
       {/* Сводная статистика */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 sm:grid-cols-3 gap-3">
         <div className="bg-white rounded-2xl border border-slate-200 px-4 py-3 text-center">
           <p className="text-2xl font-bold text-slate-800">{displayedStudents.length}</p>
           <p className="text-xs text-slate-400 mt-0.5">Учеников</p>
