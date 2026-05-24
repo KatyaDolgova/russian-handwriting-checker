@@ -65,9 +65,7 @@ export const ResultPanel = ({
       crit &&
       Object.values(crit).every((v: any) => v.result !== undefined && v.score === undefined)
     ) {
-      return (Object.values(crit) as any[]).every((v) => v.result === PASS)
-        ? PASS
-        : FAIL;
+      return (Object.values(crit) as any[]).every((v) => v.result === PASS) ? PASS : FAIL;
     }
     if (result.score == null) return '';
     // Числовые критерии - считаем сумму
@@ -107,7 +105,9 @@ export const ResultPanel = ({
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   });
   const [folderId, setFolderId] = useState('');
+  const [folderName, setFolderName] = useState('');
   const [folders, setFolders] = useState<Folder[]>([]);
+  const [showFolderDrop, setShowFolderDrop] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showCorrected, setShowCorrected] = useState(false);
   const rawLabel = result.score_label;
@@ -153,8 +153,18 @@ export const ResultPanel = ({
       if (!resolvedStudentId && studentName.trim()) {
         const res = await api.post('/api/students/', { name: studentName.trim() });
         resolvedStudentId = res.data.id;
-        setStudents((prev) => (prev.find((s) => s.id === res.data.id) ? prev : [...prev, res.data]));
+        setStudents((prev) =>
+          prev.find((s) => s.id === res.data.id) ? prev : [...prev, res.data],
+        );
         setStudentId(res.data.id);
+      }
+
+      let resolvedFolderId = folderId;
+      if (!resolvedFolderId && folderName.trim()) {
+        const res = await api.post('/api/folders/', { name: folderName.trim() });
+        resolvedFolderId = res.data.id;
+        setFolders((prev) => (prev.find((f) => f.id === res.data.id) ? prev : [...prev, res.data]));
+        setFolderId(res.data.id);
       }
 
       const isPassFailResult = passFail != null;
@@ -173,7 +183,7 @@ export const ResultPanel = ({
         comment: editedComment,
         function_id: functionId,
         student_id: resolvedStudentId || undefined,
-        folder_id: folderId || undefined,
+        folder_id: resolvedFolderId || undefined,
         work_date: new Date(workDate).toISOString(),
       });
       setSaved(true);
@@ -308,7 +318,8 @@ export const ResultPanel = ({
                 {students
                   .filter(
                     (s) =>
-                      !studentName.trim() || s.name.toLowerCase().includes(studentName.toLowerCase()),
+                      !studentName.trim() ||
+                      s.name.toLowerCase().includes(studentName.toLowerCase()),
                   )
                   .map((s) => (
                     <button
@@ -339,23 +350,48 @@ export const ResultPanel = ({
             />
           </div>
 
-          {folders.length > 0 && (
+          <div className="relative">
             <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
               <FolderClosed className="h-4 w-4 text-amber-500 shrink-0" />
-              <select
-                value={folderId}
-                onChange={(e) => setFolderId(e.target.value)}
-                className="cursor-pointer flex-1 bg-transparent text-sm text-slate-700 focus:outline-none pr-6"
-              >
-                <option value="">Без папки</option>
-                {folders.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.name}
-                  </option>
-                ))}
-              </select>
+              <input
+                type="text"
+                autoComplete="off"
+                placeholder="Папка (необязательно)"
+                value={folderName}
+                onChange={(e) => {
+                  setFolderName(e.target.value);
+                  setFolderId('');
+                }}
+                onFocus={() => setShowFolderDrop(true)}
+                onBlur={() => setTimeout(() => setShowFolderDrop(false), 150)}
+                className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 focus:outline-none cursor-text"
+              />
             </div>
-          )}
+            {showFolderDrop && folders.length > 0 && (
+              <div className="absolute left-0 right-0 top-full mt-1 z-20 bg-white border border-slate-200 rounded-xl shadow-lg max-h-40 overflow-y-auto">
+                {folders
+                  .filter(
+                    (f) =>
+                      !folderName.trim() || f.name.toLowerCase().includes(folderName.toLowerCase()),
+                  )
+                  .map((f) => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onMouseDown={() => {
+                        setFolderId(f.id);
+                        setFolderName(f.name);
+                        setShowFolderDrop(false);
+                      }}
+                      className="cursor-pointer w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 flex items-center gap-2 first:rounded-t-xl last:rounded-b-xl"
+                    >
+                      <FolderClosed className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                      {f.name}
+                    </button>
+                  ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

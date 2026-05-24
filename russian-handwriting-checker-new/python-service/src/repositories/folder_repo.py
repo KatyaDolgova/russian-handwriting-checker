@@ -15,6 +15,12 @@ class FolderRepository:
     async def create(
         self, user_id: str, name: str, description: str | None = None
     ) -> Folder:
+        existing = await self.db.execute(
+            select(Folder).where(Folder.user_id == user_id, Folder.name == name)
+        )
+        existing = existing.scalar_one_or_none()
+        if existing:
+            return existing
         obj = Folder(user_id=user_id, name=name, description=description)
         self.db.add(obj)
         await self.db.commit()
