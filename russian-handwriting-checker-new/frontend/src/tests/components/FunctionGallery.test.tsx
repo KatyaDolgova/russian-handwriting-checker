@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../test/helpers';
-import { FunctionGallery } from '../../components/ui';
+import { FunctionGallery } from '@/components/ui';
 import api from '../../api';
 
 vi.mock('../../api', () => ({
@@ -22,7 +22,6 @@ const GALLERY_FN = {
   system_prompt: 'Ты учитель',
   user_template: 'Проверь: {text}',
   author_display_name: 'Иван Иванов',
-  author_email: 'ivan@test.com',
   author_user_id: 'author-uid',
   version_number: 2,
 };
