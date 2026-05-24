@@ -104,23 +104,31 @@ class FunctionRepository:
         obj.is_published = not obj.is_published
 
         if obj.is_published:
-            max_ver_result = await self.db.execute(
-                select(sa_func.max(FunctionVersion.version_number)).where(
-                    FunctionVersion.function_id == function_id
+            last_ver_result = await self.db.execute(
+                select(FunctionVersion)
+                .where(FunctionVersion.function_id == function_id)
+                .order_by(FunctionVersion.version_number.desc())
+                .limit(1)
+            )
+            last_ver = last_ver_result.scalar_one_or_none()
+            content_changed = (
+                last_ver is None
+                or last_ver.system_prompt != obj.system_prompt
+                or last_ver.user_template != (obj.user_template or "")
+            )
+            if content_changed:
+                max_ver = last_ver.version_number if last_ver else 0
+                ver = FunctionVersion(
+                    id=str(uuid.uuid4()),
+                    function_id=function_id,
+                    version_number=max_ver + 1,
+                    name=obj.name,
+                    description=obj.description,
+                    system_prompt=obj.system_prompt,
+                    user_template=obj.user_template or "",
+                    change_note=change_note,
                 )
-            )
-            max_ver = max_ver_result.scalar() or 0
-            ver = FunctionVersion(
-                id=str(uuid.uuid4()),
-                function_id=function_id,
-                version_number=max_ver + 1,
-                name=obj.name,
-                description=obj.description,
-                system_prompt=obj.system_prompt,
-                user_template=obj.user_template or "",
-                change_note=change_note,
-            )
-            self.db.add(ver)
+                self.db.add(ver)
 
         await self.db.commit()
         await self.db.refresh(obj)
