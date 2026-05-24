@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../test/helpers';
-import { FunctionManager } from '../../components/ui';
+import { FunctionManager } from '@/components/ui';
 import api from '../../api';
 
 vi.mock('../../api', () => ({

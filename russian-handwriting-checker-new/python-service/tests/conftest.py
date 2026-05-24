@@ -3,30 +3,28 @@
 Используют SQLite in-memory вместо реальной БД.
 Supabase-аутентификация заменяется stub-зависимостями.
 """
-
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 # Регистрируем все модели в Base.metadata до create_all
-import src.models.folder  # noqa: F401
-import src.models.group  # noqa: F401
-import src.models.user_profile  # noqa: F401
-import src.models.student  # noqa: F401
+import src.models.folder            # noqa: F401
+import src.models.group             # noqa: F401
+import src.models.user_profile      # noqa: F401
+import src.models.student           # noqa: F401
 import src.models.function_version  # noqa: F401
 
 from main import app
 from src.core.database import Base
 from src.api.deps import get_db, get_current_user, get_optional_user_id
 
-# Тестовые пользователи
+# ── Тестовые пользователи ────────────────────────────────────────────────────
 
 USER_1 = {"user_id": "user-1-uid", "email": "user1@test.com"}
 USER_2 = {"user_id": "user-2-uid", "email": "user2@test.com"}
 
 
-# Базовая фикстура клиента (аутентифицирован как USER_1)
-
+# ── Базовая фикстура клиента (аутентифицирован как USER_1) ───────────────────
 
 @pytest_asyncio.fixture
 async def client():
@@ -61,8 +59,7 @@ async def client():
     await engine.dispose()
 
 
-# Вспомогательная фикстура: переключение на другого пользователя
-
+# ── Вспомогательная фикстура: переключение на другого пользователя ────────────
 
 @pytest_asyncio.fixture
 async def client_user2(client):
@@ -78,15 +75,13 @@ async def client_user2(client):
     app.dependency_overrides[get_optional_user_id] = lambda: USER_1["user_id"]
 
 
-# Вспомогательный контекст-менеджер для временной смены пользователя
-
+# ── Вспомогательный контекст-менеджер для временной смены пользователя ───────
 
 def as_user(user: dict):
     """
     Использование: async with as_user(USER_2): ...
     Позволяет сменить аутентификацию внутри одного теста.
     """
-
     class _Ctx:
         def __enter__(self):
             app.dependency_overrides[get_current_user] = lambda: user
@@ -100,7 +95,7 @@ def as_user(user: dict):
     return _Ctx()
 
 
-# Фабрики тестовых данных
+# ── Фабрики тестовых данных ──────────────────────────────────────────────────
 
 FUNCTION_PAYLOAD = {
     "name": "Тест функция",

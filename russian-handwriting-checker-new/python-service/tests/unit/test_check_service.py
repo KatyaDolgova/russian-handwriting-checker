@@ -133,7 +133,6 @@ class TestBuildMessages:
         svc = make_service(func=func)
 
         import asyncio
-
         messages, _ = asyncio.get_event_loop().run_until_complete(
             svc._build_messages("мой текст", "func-1")
         )
@@ -147,7 +146,6 @@ class TestBuildMessages:
         svc = make_service(func=func)
 
         import asyncio
-
         messages, _ = asyncio.get_event_loop().run_until_complete(
             svc._build_messages("мой текст", "func-1")
         )
@@ -160,7 +158,6 @@ class TestBuildMessages:
         svc = make_service(func=func)
 
         import asyncio
-
         messages, _ = asyncio.get_event_loop().run_until_complete(
             svc._build_messages("игнорируется", "func-1")
         )
@@ -173,7 +170,6 @@ class TestBuildMessages:
         svc = CheckService(llm, repo)
 
         import asyncio
-
         with pytest.raises(ValueError, match="не найдена"):
             asyncio.get_event_loop().run_until_complete(
                 svc._build_messages("текст", "missing-id")
