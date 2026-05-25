@@ -12,16 +12,14 @@ class FolderRepository:
         )
         return res.scalars().all()
 
-    async def create(
-        self, user_id: str, name: str, description: str | None = None
-    ) -> Folder:
+    async def create(self, user_id: str, name: str) -> Folder:
         existing = await self.db.execute(
             select(Folder).where(Folder.user_id == user_id, Folder.name == name)
         )
         existing = existing.scalar_one_or_none()
         if existing:
             return existing
-        obj = Folder(user_id=user_id, name=name, description=description)
+        obj = Folder(user_id=user_id, name=name)
         self.db.add(obj)
         await self.db.commit()
         await self.db.refresh(obj)
@@ -31,14 +29,11 @@ class FolderRepository:
         res = await self.db.execute(select(Folder).where(Folder.id == folder_id))
         return res.scalar_one_or_none()
 
-    async def update(
-        self, folder_id: str, name: str, description: str | None = None
-    ) -> Folder | None:
+    async def update(self, folder_id: str, name: str) -> Folder | None:
         obj = await self.get(folder_id)
         if not obj:
             return None
         obj.name = name
-        obj.description = description
         await self.db.commit()
         await self.db.refresh(obj)
         return obj
