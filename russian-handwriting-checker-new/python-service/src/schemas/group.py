@@ -4,7 +4,6 @@ from typing import Optional
 
 class GroupCreate(BaseModel):
     name: str
-    description: Optional[str] = None
 
 
 class StudentGroupAssign(BaseModel):

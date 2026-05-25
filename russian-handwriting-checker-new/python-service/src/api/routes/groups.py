@@ -16,9 +16,7 @@ async def list_groups(db=Depends(get_db), current_user=Depends(get_current_user)
 async def create_group(
     data: GroupCreate, db=Depends(get_db), current_user=Depends(get_current_user)
 ):
-    return await GroupRepository(db).create_group(
-        current_user["user_id"], data.name, data.description
-    )
+    return await GroupRepository(db).create_group(current_user["user_id"], data.name)
 
 
 @router.put("/{group_id}")
@@ -32,7 +30,7 @@ async def update_group(
     obj = await repo.get_group(group_id)
     if not obj or obj.user_id != current_user["user_id"]:
         raise HTTPException(status_code=404, detail="Группа не найдена")
-    return await repo.update_group(group_id, data.name, data.description)
+    return await repo.update_group(group_id, data.name)
 
 
 @router.delete("/{group_id}")
