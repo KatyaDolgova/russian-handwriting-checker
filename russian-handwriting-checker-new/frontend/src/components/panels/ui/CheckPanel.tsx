@@ -73,8 +73,7 @@ export const CheckPanel = ({
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
     try {
-      const apiBase = import.meta.env.VITE_API_URL ?? '';
-      const response = await fetch(`${apiBase}/api/check/stream`, {
+      const response = await fetch('/api/check/stream', {
         method: 'POST',
         headers,
         body: JSON.stringify({ text: buildText(), function_id: selectedId }),
