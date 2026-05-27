@@ -62,7 +62,7 @@ export const AuthModal = ({ onClose }: AuthModalProps) => {
             <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
               <BookOpen className="h-4 w-4 text-white" />
             </div>
-            <span className="text-white font-semibold">РусскийЯзык AI</span>
+            <span className="text-white font-semibold">РусЯзык AI</span>
           </div>
           <p className="text-indigo-200 text-sm">
             {tab === 'login' ? 'Войдите в аккаунт' : 'Создайте аккаунт'}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Pencil,
   Eye,
@@ -8,6 +8,8 @@ import {
   Printer,
   User2,
   FolderClosed,
+  Download,
+  ChevronDown,
 } from 'lucide-react';
 import api from '@/api';
 import { useAuth } from '@/context/AuthContext';
@@ -116,6 +118,19 @@ export const ResultPanel = ({
   );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const downloadMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showDownloadMenu) return;
+    const handler = (e: MouseEvent) => {
+      if (downloadMenuRef.current && !downloadMenuRef.current.contains(e.target as Node)) {
+        setShowDownloadMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showDownloadMenu]);
 
   useEffect(() => {
     api
@@ -195,10 +210,10 @@ export const ResultPanel = ({
     }
   };
 
-  const handlePrint = () => {
+  const buildHtml = () => {
     const scoreDisplay =
       result.score_label ?? `${parseFloat(editedScore) || 0} / ${parseFloat(scoreMax) || 5}`;
-    const html = `<!DOCTYPE html>
+    return `<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8"/>
@@ -244,14 +259,70 @@ export const ResultPanel = ({
           .join('')}</div></div>`
       : ''
   }
+  ${sourceText ? `<div class="section"><div class="section-title">Исходный текст</div><div class="text-box">${sourceText}</div></div>` : ''}
   ${errors.length > 0 ? `<div class="section"><div class="section-title">Найденные ошибки (${errors.length})</div>${errors.map((e: any) => `<div class="error-row"><span class="del">${e.original || ''}</span><span>→</span><span class="ins">${e.corrected || ''}</span><span style="color:#666">${e.comment || e.type || ''}</span></div>`).join('')}</div>` : ''}
   <div class="section"><div class="section-title">Исправленный текст</div><div class="text-box">${editedCorrected}</div></div>
 </body>
 </html>`;
+  };
+
+  const handlePrint = () => {
+    const html = buildHtml();
     const win = window.open('', '_blank');
-    win?.document.write(html);
-    win?.document.close();
-    win?.print();
+    if (!win) return;
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+    win.print();
+  };
+
+  const handleDownloadHtml = () => {
+    const blob = new Blob([buildHtml()], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title || studentName || filename || 'отчёт'}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setShowDownloadMenu(false);
+  };
+
+  const handleDownloadTxt = () => {
+    const scoreDisplay =
+      result.score_label ?? `${parseFloat(editedScore) || 0} / ${parseFloat(scoreMax) || 5}`;
+    const lines: string[] = [];
+    lines.push(title || 'Проверка работы');
+    lines.push('='.repeat(40));
+    if (studentName) lines.push(`Ученик: ${studentName}`);
+    lines.push(`Файл: ${filename}`);
+    lines.push(`Дата: ${new Date().toLocaleDateString('ru-RU')}`);
+    lines.push('');
+    lines.push(`Оценка: ${scoreDisplay}`);
+    if (editedComment) { lines.push(''); lines.push('Комментарий:'); lines.push(editedComment); }
+    if (criteria) {
+      lines.push(''); lines.push('Критерии:');
+      Object.entries(criteria).forEach(([k, v]: [string, any]) => {
+        const score = v.score !== undefined ? v.score : v.result;
+        const max = v.max !== undefined ? `/${v.max}` : '';
+        lines.push(`  ${k}: ${score}${max}${v.comment ? ' — ' + v.comment : ''}`);
+      });
+    }
+    if (sourceText) { lines.push(''); lines.push('Исходный текст:'); lines.push(sourceText); }
+    if (errors.length > 0) {
+      lines.push(''); lines.push(`Ошибки (${errors.length}):`);
+      errors.forEach((e: any) => {
+        lines.push(`  ${e.original || ''} → ${e.corrected || ''} (${e.comment || e.type || ''})`);
+      });
+    }
+    lines.push(''); lines.push('Исправленный текст:'); lines.push(editedCorrected);
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title || studentName || filename || 'отчёт'}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setShowDownloadMenu(false);
   };
 
   return (
@@ -261,14 +332,43 @@ export const ResultPanel = ({
           Результат проверки
         </h2>
         <div className="flex items-center gap-2">
-          <button
-            onClick={handlePrint}
-            title="Печать отчёта"
-            className="cursor-pointer flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
-          >
-            <Printer className="h-3.5 w-3.5" />
-            Печать
-          </button>
+          <div className="relative" ref={downloadMenuRef}>
+            <div className="flex rounded-lg overflow-hidden border border-slate-200">
+              <button
+                onClick={handlePrint}
+                title="Печать отчёта"
+                className="cursor-pointer flex items-center gap-1.5 text-xs px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+              >
+                <Printer className="h-3.5 w-3.5" />
+                Печать
+              </button>
+              <button
+                onClick={() => setShowDownloadMenu((v) => !v)}
+                title="Скачать отчёт"
+                className="cursor-pointer flex items-center px-2 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors border-l border-slate-200"
+              >
+                <ChevronDown className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            {showDownloadMenu && (
+              <div className="absolute right-0 top-full mt-1 z-30 bg-white border border-slate-200 rounded-xl shadow-lg py-1 min-w-[160px]">
+                <button
+                  onClick={handleDownloadHtml}
+                  className="cursor-pointer w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                >
+                  <Download className="h-3.5 w-3.5 text-indigo-500" />
+                  Скачать HTML
+                </button>
+                <button
+                  onClick={handleDownloadTxt}
+                  className="cursor-pointer w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                >
+                  <Download className="h-3.5 w-3.5 text-slate-400" />
+                  Скачать TXT
+                </button>
+              </div>
+            )}
+          </div>
           <button
             onClick={() => setIsEditing(!isEditing)}
             className={`cursor-pointer flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
