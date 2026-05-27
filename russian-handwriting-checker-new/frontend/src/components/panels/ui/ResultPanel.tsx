@@ -135,12 +135,12 @@ export const ResultPanel = ({
   useEffect(() => {
     api
       .get('/api/folders/')
-      .then((r) => setFolders(r.data))
+      .then((r) => setFolders(Array.isArray(r.data) ? r.data : []))
       .catch(() => {});
     if (user) {
       api
         .get('/api/students/')
-        .then((r) => setStudents(r.data as Student[]))
+        .then((r) => setStudents(Array.isArray(r.data) ? r.data : []))
         .catch(() => {});
     }
   }, [user]);
