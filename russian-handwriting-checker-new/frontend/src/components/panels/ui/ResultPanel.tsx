@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Pencil,
   Eye,
@@ -8,6 +8,8 @@ import {
   Printer,
   User2,
   FolderClosed,
+  Download,
+  ChevronDown,
 } from 'lucide-react';
 import api from '@/api';
 import { useAuth } from '@/context/AuthContext';
@@ -65,9 +67,7 @@ export const ResultPanel = ({
       crit &&
       Object.values(crit).every((v: any) => v.result !== undefined && v.score === undefined)
     ) {
-      return (Object.values(crit) as any[]).every((v) => v.result === PASS)
-        ? PASS
-        : FAIL;
+      return (Object.values(crit) as any[]).every((v) => v.result === PASS) ? PASS : FAIL;
     }
     if (result.score == null) return '';
     // Числовые критерии - считаем сумму
@@ -107,7 +107,9 @@ export const ResultPanel = ({
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   });
   const [folderId, setFolderId] = useState('');
+  const [folderName, setFolderName] = useState('');
   const [folders, setFolders] = useState<Folder[]>([]);
+  const [showFolderDrop, setShowFolderDrop] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showCorrected, setShowCorrected] = useState(false);
   const rawLabel = result.score_label;
@@ -116,6 +118,19 @@ export const ResultPanel = ({
   );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const downloadMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showDownloadMenu) return;
+    const handler = (e: MouseEvent) => {
+      if (downloadMenuRef.current && !downloadMenuRef.current.contains(e.target as Node)) {
+        setShowDownloadMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showDownloadMenu]);
 
   useEffect(() => {
     api
@@ -153,8 +168,18 @@ export const ResultPanel = ({
       if (!resolvedStudentId && studentName.trim()) {
         const res = await api.post('/api/students/', { name: studentName.trim() });
         resolvedStudentId = res.data.id;
-        setStudents((prev) => (prev.find((s) => s.id === res.data.id) ? prev : [...prev, res.data]));
+        setStudents((prev) =>
+          prev.find((s) => s.id === res.data.id) ? prev : [...prev, res.data],
+        );
         setStudentId(res.data.id);
+      }
+
+      let resolvedFolderId = folderId;
+      if (!resolvedFolderId && folderName.trim()) {
+        const res = await api.post('/api/folders/', { name: folderName.trim() });
+        resolvedFolderId = res.data.id;
+        setFolders((prev) => (prev.find((f) => f.id === res.data.id) ? prev : [...prev, res.data]));
+        setFolderId(res.data.id);
       }
 
       const isPassFailResult = passFail != null;
@@ -173,7 +198,7 @@ export const ResultPanel = ({
         comment: editedComment,
         function_id: functionId,
         student_id: resolvedStudentId || undefined,
-        folder_id: folderId || undefined,
+        folder_id: resolvedFolderId || undefined,
         work_date: new Date(workDate).toISOString(),
       });
       setSaved(true);
@@ -185,10 +210,10 @@ export const ResultPanel = ({
     }
   };
 
-  const handlePrint = () => {
+  const buildHtml = () => {
     const scoreDisplay =
       result.score_label ?? `${parseFloat(editedScore) || 0} / ${parseFloat(scoreMax) || 5}`;
-    const html = `<!DOCTYPE html>
+    return `<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8"/>
@@ -234,14 +259,70 @@ export const ResultPanel = ({
           .join('')}</div></div>`
       : ''
   }
+  ${sourceText ? `<div class="section"><div class="section-title">Исходный текст</div><div class="text-box">${sourceText}</div></div>` : ''}
   ${errors.length > 0 ? `<div class="section"><div class="section-title">Найденные ошибки (${errors.length})</div>${errors.map((e: any) => `<div class="error-row"><span class="del">${e.original || ''}</span><span>→</span><span class="ins">${e.corrected || ''}</span><span style="color:#666">${e.comment || e.type || ''}</span></div>`).join('')}</div>` : ''}
   <div class="section"><div class="section-title">Исправленный текст</div><div class="text-box">${editedCorrected}</div></div>
 </body>
 </html>`;
+  };
+
+  const handlePrint = () => {
+    const html = buildHtml();
     const win = window.open('', '_blank');
-    win?.document.write(html);
-    win?.document.close();
-    win?.print();
+    if (!win) return;
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+    win.print();
+  };
+
+  const handleDownloadHtml = () => {
+    const blob = new Blob([buildHtml()], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title || studentName || filename || 'отчёт'}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setShowDownloadMenu(false);
+  };
+
+  const handleDownloadTxt = () => {
+    const scoreDisplay =
+      result.score_label ?? `${parseFloat(editedScore) || 0} / ${parseFloat(scoreMax) || 5}`;
+    const lines: string[] = [];
+    lines.push(title || 'Проверка работы');
+    lines.push('='.repeat(40));
+    if (studentName) lines.push(`Ученик: ${studentName}`);
+    lines.push(`Файл: ${filename}`);
+    lines.push(`Дата: ${new Date().toLocaleDateString('ru-RU')}`);
+    lines.push('');
+    lines.push(`Оценка: ${scoreDisplay}`);
+    if (editedComment) { lines.push(''); lines.push('Комментарий:'); lines.push(editedComment); }
+    if (criteria) {
+      lines.push(''); lines.push('Критерии:');
+      Object.entries(criteria).forEach(([k, v]: [string, any]) => {
+        const score = v.score !== undefined ? v.score : v.result;
+        const max = v.max !== undefined ? `/${v.max}` : '';
+        lines.push(`  ${k}: ${score}${max}${v.comment ? ' — ' + v.comment : ''}`);
+      });
+    }
+    if (sourceText) { lines.push(''); lines.push('Исходный текст:'); lines.push(sourceText); }
+    if (errors.length > 0) {
+      lines.push(''); lines.push(`Ошибки (${errors.length}):`);
+      errors.forEach((e: any) => {
+        lines.push(`  ${e.original || ''} → ${e.corrected || ''} (${e.comment || e.type || ''})`);
+      });
+    }
+    lines.push(''); lines.push('Исправленный текст:'); lines.push(editedCorrected);
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title || studentName || filename || 'отчёт'}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setShowDownloadMenu(false);
   };
 
   return (
@@ -251,14 +332,43 @@ export const ResultPanel = ({
           Результат проверки
         </h2>
         <div className="flex items-center gap-2">
-          <button
-            onClick={handlePrint}
-            title="Печать отчёта"
-            className="cursor-pointer flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
-          >
-            <Printer className="h-3.5 w-3.5" />
-            Печать
-          </button>
+          <div className="relative" ref={downloadMenuRef}>
+            <div className="flex rounded-lg overflow-hidden border border-slate-200">
+              <button
+                onClick={handlePrint}
+                title="Печать отчёта"
+                className="cursor-pointer flex items-center gap-1.5 text-xs px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+              >
+                <Printer className="h-3.5 w-3.5" />
+                Печать
+              </button>
+              <button
+                onClick={() => setShowDownloadMenu((v) => !v)}
+                title="Скачать отчёт"
+                className="cursor-pointer flex items-center px-2 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors border-l border-slate-200"
+              >
+                <ChevronDown className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            {showDownloadMenu && (
+              <div className="absolute right-0 top-full mt-1 z-30 bg-white border border-slate-200 rounded-xl shadow-lg py-1 min-w-[160px]">
+                <button
+                  onClick={handleDownloadHtml}
+                  className="cursor-pointer w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                >
+                  <Download className="h-3.5 w-3.5 text-indigo-500" />
+                  Скачать HTML
+                </button>
+                <button
+                  onClick={handleDownloadTxt}
+                  className="cursor-pointer w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                >
+                  <Download className="h-3.5 w-3.5 text-slate-400" />
+                  Скачать TXT
+                </button>
+              </div>
+            )}
+          </div>
           <button
             onClick={() => setIsEditing(!isEditing)}
             className={`cursor-pointer flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
@@ -308,7 +418,8 @@ export const ResultPanel = ({
                 {students
                   .filter(
                     (s) =>
-                      !studentName.trim() || s.name.toLowerCase().includes(studentName.toLowerCase()),
+                      !studentName.trim() ||
+                      s.name.toLowerCase().includes(studentName.toLowerCase()),
                   )
                   .map((s) => (
                     <button
@@ -339,23 +450,48 @@ export const ResultPanel = ({
             />
           </div>
 
-          {folders.length > 0 && (
+          <div className="relative">
             <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
               <FolderClosed className="h-4 w-4 text-amber-500 shrink-0" />
-              <select
-                value={folderId}
-                onChange={(e) => setFolderId(e.target.value)}
-                className="cursor-pointer flex-1 bg-transparent text-sm text-slate-700 focus:outline-none pr-6"
-              >
-                <option value="">Без папки</option>
-                {folders.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.name}
-                  </option>
-                ))}
-              </select>
+              <input
+                type="text"
+                autoComplete="off"
+                placeholder="Папка (необязательно)"
+                value={folderName}
+                onChange={(e) => {
+                  setFolderName(e.target.value);
+                  setFolderId('');
+                }}
+                onFocus={() => setShowFolderDrop(true)}
+                onBlur={() => setTimeout(() => setShowFolderDrop(false), 150)}
+                className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 focus:outline-none cursor-text"
+              />
             </div>
-          )}
+            {showFolderDrop && folders.length > 0 && (
+              <div className="absolute left-0 right-0 top-full mt-1 z-20 bg-white border border-slate-200 rounded-xl shadow-lg max-h-40 overflow-y-auto">
+                {folders
+                  .filter(
+                    (f) =>
+                      !folderName.trim() || f.name.toLowerCase().includes(folderName.toLowerCase()),
+                  )
+                  .map((f) => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onMouseDown={() => {
+                        setFolderId(f.id);
+                        setFolderName(f.name);
+                        setShowFolderDrop(false);
+                      }}
+                      className="cursor-pointer w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 flex items-center gap-2 first:rounded-t-xl last:rounded-b-xl"
+                    >
+                      <FolderClosed className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                      {f.name}
+                    </button>
+                  ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

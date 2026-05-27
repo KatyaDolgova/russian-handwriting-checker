@@ -29,7 +29,16 @@ async def stream_check(request: CheckRequest, db=Depends(get_db)):
                 yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
         except Exception as e:
             logger.error(f"Ошибка стриминга: {e}", exc_info=True)
-            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+            error_str = str(e)
+            if "rate_limit_exceeded" in error_str or "Request too large" in error_str or "413" in error_str:
+                message = "Текст слишком длинный для проверки. Сократите работу или разделите её на части."
+            elif "rate_limit" in error_str or "429" in error_str:
+                message = "Превышен лимит запросов. Подождите немного и попробуйте снова."
+            elif "api_key" in error_str.lower() or "401" in error_str or "403" in error_str:
+                message = "Ошибка доступа к сервису проверки. Обратитесь к администратору."
+            else:
+                message = "Не удалось выполнить проверку. Попробуйте ещё раз."
+            yield f"data: {json.dumps({'type': 'error', 'message': message}, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(
         generate(),

@@ -79,7 +79,6 @@ class TestScoreText:
             assert 0.0 <= s <= 1.0
 
     def test_yo_normalized(self):
-        # ё and е should be treated the same
         s1 = score_text("ёлка ёжик ёмкость")
         s2 = score_text("елка ежик емкость")
         assert abs(s1 - s2) < 0.01

@@ -13,10 +13,8 @@ class GroupRepository:
         )
         return res.scalars().all()
 
-    async def create_group(
-        self, user_id: str, name: str, description: str | None = None
-    ) -> Group:
-        obj = Group(user_id=user_id, name=name, description=description)
+    async def create_group(self, user_id: str, name: str) -> Group:
+        obj = Group(user_id=user_id, name=name)
         self.db.add(obj)
         await self.db.commit()
         await self.db.refresh(obj)
@@ -26,14 +24,11 @@ class GroupRepository:
         res = await self.db.execute(select(Group).where(Group.id == group_id))
         return res.scalar_one_or_none()
 
-    async def update_group(
-        self, group_id: str, name: str, description: str | None = None
-    ) -> Group | None:
+    async def update_group(self, group_id: str, name: str) -> Group | None:
         obj = await self.get_group(group_id)
         if not obj:
             return None
         obj.name = name
-        obj.description = description
         await self.db.commit()
         await self.db.refresh(obj)
         return obj
