@@ -7,10 +7,12 @@ import { CheckPage } from '../../pages/ui/CheckPage';
 import type { CheckState } from '../../App';
 
 vi.mock('../../components/ui', () => ({
-  UploadForm: ({ onSuccess }: { onSuccess: (d: Record<string, unknown>) => void }) => (
-    <button onClick={() => onSuccess({ text: 'Распознанный текст', filename: 'file.jpg' })}>
-      Загрузить файл
-    </button>
+  UploadForm: ({
+    onTaskCreated,
+  }: {
+    onTaskCreated: (taskId: string, filename: string) => void;
+  }) => (
+    <button onClick={() => onTaskCreated('task-123', 'file.jpg')}>Загрузить файл</button>
   ),
   StreamingPreview: ({ text }: { text: string }) => (
     <div data-testid="streaming-preview">{text}</div>
@@ -35,6 +37,10 @@ const INIT_STATE: CheckState = {
   filename: '',
   functionId: '',
   rightState: 'empty',
+  uploadStatus: 'idle',
+  uploadTaskId: null,
+  uploadFilename: '',
+  uploadError: '',
 };
 
 function makeState(overrides: Partial<CheckState> = {}): CheckState {
@@ -127,7 +133,7 @@ describe('CheckPage — исходный текст', () => {
 });
 
 describe('CheckPage — загрузка файла', () => {
-  it('обновляет состояние после успешной загрузки', async () => {
+  it('переводит состояние в processing после создания задачи', async () => {
     const user = userEvent.setup();
     const setState = vi.fn();
     renderWithProviders(<CheckPage state={makeState()} setState={setState} />);
@@ -135,8 +141,8 @@ describe('CheckPage — загрузка файла', () => {
     expect(setState).toHaveBeenCalled();
     const updater = setState.mock.calls[0][0];
     const newState = updater(INIT_STATE);
-    expect(newState.editedText).toBe('Распознанный текст');
-    expect(newState.filename).toBe('file.jpg');
-    expect(newState.rightState).toBe('empty');
+    expect(newState.uploadStatus).toBe('processing');
+    expect(newState.uploadTaskId).toBe('task-123');
+    expect(newState.uploadFilename).toBe('file.jpg');
   });
 });

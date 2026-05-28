@@ -14,6 +14,7 @@ export const CheckPage = ({ state, setState }: CheckPageProps) => {
   const [showSource, setShowSource] = useState(false);
   const [selectedFn, setSelectedFn] = useState<Fn | null>(null);
   const { editedText, sourceText, streamText, result, filename, functionId, rightState } = state;
+  const { uploadStatus, uploadError } = state;
 
   const fnHint: string | null = (() => {
     if (!selectedFn) return null;
@@ -23,15 +24,26 @@ export const CheckPage = ({ state, setState }: CheckPageProps) => {
     return null;
   })();
 
-  const handleUploadSuccess = (data: Record<string, unknown>) => {
+  const handleUploadingStart = () => {
+    setState((prev) => ({ ...prev, uploadStatus: 'uploading', uploadError: '' }));
+  };
+
+  const handleTaskCreated = (taskId: string, uploadedName: string) => {
     setState((prev) => ({
       ...prev,
-      editedText: (data.text as string) || '',
-      filename: (data.filename as string) || 'uploaded-file',
-      streamText: '',
-      result: null,
-      rightState: 'empty',
+      uploadStatus: 'processing',
+      uploadTaskId: taskId,
+      uploadFilename: uploadedName,
+      uploadError: '',
     }));
+  };
+
+  const handleUploadError = (msg: string) => {
+    setState((prev) => ({ ...prev, uploadStatus: 'error', uploadError: msg, uploadTaskId: null }));
+  };
+
+  const handleUploadCancel = () => {
+    setState((prev) => ({ ...prev, uploadStatus: 'idle', uploadTaskId: null, uploadError: '' }));
   };
 
   const handleStreamStart = () => {
@@ -58,7 +70,14 @@ export const CheckPage = ({ state, setState }: CheckPageProps) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div className="flex flex-col gap-5">
-        <UploadForm onSuccess={handleUploadSuccess} />
+        <UploadForm
+          status={uploadStatus}
+          error={uploadError}
+          onUploadingStart={handleUploadingStart}
+          onTaskCreated={handleTaskCreated}
+          onUploadError={handleUploadError}
+          onCancel={handleUploadCancel}
+        />
 
         {/* Исходный текст - необязательное поле */}
         {showSource ? (

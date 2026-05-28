@@ -8,13 +8,11 @@ export type StudentsSortKey = 'works_desc' | 'pct_desc' | 'pct_asc' | 'name_asc'
 export interface Folder {
   id: string;
   name: string;
-  description?: string;
 }
 
 export interface Group {
   id: string;
   name: string;
-  description?: string;
 }
 
 export interface Student {
@@ -42,7 +40,10 @@ export interface CheckRecord {
   corrected_text?: string;
   original_text?: string;
   errors?: CheckError[] | null;
-  criteria?: Record<string, { score?: number; result?: string | number; max?: number; comment?: string }> | null;
+  criteria?: Record<
+    string,
+    { score?: number; result?: string | number; max?: number; comment?: string }
+  > | null;
   folder_id?: string | null;
   work_date?: string;
   created_at: string;

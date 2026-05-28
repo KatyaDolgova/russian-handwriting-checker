@@ -1,63 +1,41 @@
 import { useState } from 'react';
-import { UploadCloud, FileText, Loader2, AlertCircle } from 'lucide-react';
+import { UploadCloud, FileText, Loader2, AlertCircle, X } from 'lucide-react';
 import api from '@/api';
-import { POLL_INTERVAL, POLL_TIMEOUT } from '@/constants';
+import type { UploadStatus } from '@/App';
 
 interface UploadFormProps {
-  onSuccess: (data: any) => void;
+  status: UploadStatus;
+  error: string;
+  onUploadingStart: () => void;
+  onTaskCreated: (taskId: string, filename: string) => void;
+  onUploadError: (msg: string) => void;
+  onCancel: () => void;
 }
 
-export const UploadForm = ({ onSuccess }: UploadFormProps) => {
+export const UploadForm = ({
+  status,
+  error,
+  onUploadingStart,
+  onTaskCreated,
+  onUploadError,
+  onCancel,
+}: UploadFormProps) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'uploading' | 'processing' | 'error'>('idle');
-  const [errorMsg, setErrorMsg] = useState('');
 
   const handleUpload = async (file: File) => {
-    setStatus('uploading');
-    setErrorMsg('');
+    onUploadingStart();
 
     const formData = new FormData();
     formData.append('file', file);
 
-    let taskId: string;
     try {
       const res = await api.post('/api/upload/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      taskId = res.data.task_id;
+      onTaskCreated(res.data.task_id, file.name);
     } catch {
-      setStatus('error');
-      setErrorMsg('Не удалось загрузить файл');
-      return;
+      onUploadError('Не удалось загрузить файл');
     }
-
-    setStatus('processing');
-    const deadline = Date.now() + POLL_TIMEOUT;
-
-    const poll = async () => {
-      if (Date.now() > deadline) {
-        setStatus('error');
-        setErrorMsg('Превышено время ожидания OCR');
-        return;
-      }
-      try {
-        const res = await api.get(`/api/upload/${taskId}`);
-        const { status: s, text, error } = res.data;
-        if (s === 'done') {
-          setStatus('idle');
-          onSuccess({ text, filename: file.name });
-        } else if (s === 'error') {
-          setStatus('error');
-          setErrorMsg(error || 'Ошибка распознавания');
-        } else {
-          setTimeout(poll, POLL_INTERVAL);
-        }
-      } catch {
-        setTimeout(poll, POLL_INTERVAL);
-      }
-    };
-
-    setTimeout(poll, POLL_INTERVAL);
   };
 
   const busy = status === 'uploading' || status === 'processing';
@@ -126,10 +104,22 @@ export const UploadForm = ({ onSuccess }: UploadFormProps) => {
         )}
       </label>
 
+      {status === 'processing' && (
+        <div className="px-5 pb-4">
+          <button
+            onClick={onCancel}
+            className="cursor-pointer flex items-center justify-center gap-2 w-full bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-500 py-3 rounded-xl font-medium text-sm transition-colors"
+          >
+            <X className="h-4 w-4" />
+            Отменить распознавание
+          </button>
+        </div>
+      )}
+
       {status === 'error' && (
         <div className="mx-5 mb-4 flex items-center gap-2 text-red-600 bg-red-50 rounded-xl px-4 py-3 text-sm">
           <AlertCircle className="h-4 w-4 shrink-0" />
-          {errorMsg}
+          {error}
         </div>
       )}
 
